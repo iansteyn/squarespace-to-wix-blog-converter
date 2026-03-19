@@ -18,7 +18,7 @@ def create_better_content_tag(content_tag):
 
         inner_soup = BeautifulSoup(content_tag.string, 'html.parser')
 
-        # MOD: Delete that summary block section # ORDER MATTERS
+        # MOD: Delete summary block section # ORDER MATTERS
         blocks_to_remove = inner_soup.find_all("div", class_="summary-block-wrapper")
         
         for block in blocks_to_remove:
@@ -41,8 +41,13 @@ def create_better_content_tag(content_tag):
             del tag['class']
 
         # TODO: replace <hr> with <p>---</p>
-        # TODO: remove uneccesary divs
-            # learning this will help me with the below task
+
+
+        # MOD: remove uneccesary divs
+        sqs_div_tags = inner_soup.find_all('div', class_='sqs-html-content')
+
+        for tag in sqs_div_tags:
+            tag.unwrap()
 
         # TODO: simplify list items
             # For some reason, each list item is its own list, AND is wrapped inside of a <p> on the inside. 
@@ -59,6 +64,7 @@ def create_better_content_tag(content_tag):
             if tag.has_attr('data-rte-preserve-empty'):
                 del tag['data-rte-preserve-empty']
 
+        # TODO: remove all spans?
 
         return CData(str(inner_soup.prettify()))
 
