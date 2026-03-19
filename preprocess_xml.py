@@ -1,5 +1,6 @@
 """
 TODO: file description
+TODO: uninstall lxml and dependencies
 """
 # -----------------------------------------------
 # IMPORTS AND WARNING FILTERS
@@ -9,34 +10,9 @@ import warnings
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
-# ------------------------------------------------------------
-# NOTE: the input and output folders may have to be manually created since git doesn't consider directories files
-real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
-test_input_path = "short-copy-for-testing.xml"
-INPUT_FILE_PATH = "./input_xml/" + test_input_path
-OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
+# FUNCTIONS
 
-# TODO: delete
-# NAMESPACES = {
-#     'content': 'http://purl.org/rss/1.0/modules/content/',
-#     'excerpt': "http://wordpress.org/export/1.2/excerpt/",
-#     'wfw': "http://wellformedweb.org/CommentAPI/",
-#     'dc': "http://purl.org/dc/elements/1.1/",
-#     'wp': "http://wordpress.org/export/1.2/"
-# }
-
-
-# According to Gemini: Using 'rb' (read binary) is safer for large XML files
-# as it lets the parser handle the encoding declaration automatically'rb' 
-with open(INPUT_FILE_PATH, 'rb') as file:
-    soup = BeautifulSoup(file, 'html.parser') # use html.parser instead of xml because lxml strips CDATA and messes everything up
-
-items = soup.find_all('item')
-
-for item in items:
-
-    content_tag = item.find('content:encoded')
-
+def create_better_content_tag(content_tag):
     if content_tag and content_tag.string:
 
         inner_soup = BeautifulSoup(content_tag.string, 'html.parser')
@@ -46,8 +22,28 @@ for item in items:
         new_tag.string = "this has been modified"
         inner_soup.insert(0, new_tag)
 
-        # reassign
-        content_tag.string = CData(str(inner_soup))
+        return CData(str(inner_soup))
+
+
+# ------------------------------------------------------------
+# SETUP
+
+# NOTE: the input and output folders may have to be manually created since git doesn't consider directories files
+real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
+test_input_path = "short-copy-for-testing.xml"
+INPUT_FILE_PATH = "./input_xml/" + test_input_path
+OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
+
+with open(INPUT_FILE_PATH, 'rb') as file:
+    soup = BeautifulSoup(file, 'html.parser') # use html.parser instead of xml because lxml strips CDATA and messes everything up
+
+# LOOP THROUGH ITEMS
+items = soup.find_all('item')
+
+for item in items:
+
+    content_tag = item.find('content:encoded')
+    content_tag.string = create_better_content_tag(content_tag)
 
 
 # --------------------------------
@@ -57,4 +53,3 @@ print(f"Modified {len(items)} test posts.")
 
 with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
     file.write(str(soup))
-
