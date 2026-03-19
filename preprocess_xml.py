@@ -40,13 +40,19 @@ def create_better_content_tag(content_tag):
             tag.name = 'h4'
             del tag['class']
 
-        # TODO: replace <hr> with <p>---</p>
+        # MOD: replace <hr> with <p>---</p>
+            # TODO: may require more space - see <br> todo above
+        hr_tags = inner_soup.find_all("hr")
 
+        for tag in hr_tags:
+            new_tag = soup.new_tag('p')
+            new_tag.string = "———"
+            tag.replace_with(new_tag)
 
         # MOD: remove uneccesary divs
-        sqs_div_tags = inner_soup.find_all('div', class_='sqs-html-content')
+        wrapper_div_tags = inner_soup.find_all('div', class_='sqs-html-content')
 
-        for tag in sqs_div_tags:
+        for tag in wrapper_div_tags:
             tag.unwrap()
 
         # TODO: simplify list items
