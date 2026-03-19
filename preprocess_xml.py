@@ -10,6 +10,7 @@ import warnings
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
+# -----------------------------------------------
 # FUNCTIONS
 
 def create_better_content_tag(content_tag):
@@ -22,8 +23,21 @@ def create_better_content_tag(content_tag):
         new_tag.string = "this has been modified"
         inner_soup.insert(0, new_tag)
 
+        # Delete that summary block section
+        blocks_to_remove = inner_soup.find_all("div", class_="summary-block-wrapper")
+        
+        for block in blocks_to_remove:
+            block.extract()
+
         return CData(str(inner_soup))
 
+def create_better_excerpt_tag(excerpt_tag):
+    '''
+    Doesn't do much yet. 
+    '''
+    inner_soup = BeautifulSoup(excerpt_tag.string, 'html.parser')
+
+    return CData(str(inner_soup))
 
 # ------------------------------------------------------------
 # SETUP
@@ -35,8 +49,9 @@ INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
 with open(INPUT_FILE_PATH, 'rb') as file:
-    soup = BeautifulSoup(file, 'html.parser') # use html.parser instead of xml because lxml strips CDATA and messes everything up
+    soup = BeautifulSoup(file, 'xml') # using html.parser instead of xml, because lxml strips CDATA and messes everything up
 
+# -----------------------------------
 # LOOP THROUGH ITEMS
 items = soup.find_all('item')
 
@@ -44,8 +59,11 @@ for item in items:
 
     content_tag = item.find('content:encoded')
     content_tag.string = create_better_content_tag(content_tag)
+    
+    excerpt_tag = item.find('excerpt:encoded')
+    excerpt_tag.string = create_better_excerpt_tag(excerpt_tag)
 
-
+# soup.prettify()
 # --------------------------------
 # FINISH
 
