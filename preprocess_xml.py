@@ -22,33 +22,31 @@ test_input_path = "short-copy-for-testing.xml"
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
-PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
+PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
 
+# TODO: clean content
 def create_better_content_tag(content_tag) -> CData:
     if content_tag and content_tag.string:
 
         inner_soup = BeautifulSoup(content_tag.string, 'html.parser')
 
-        # MOD: # ORDER MATTERS
+        # Remember: ORDER MATTERS
+
+        # REMOVE JUNK
         remove_summary_block(inner_soup)
+        remove_extra_wrappers(inner_soup) # TODO actually this and r_e_p and a_p_s must be a linear process so they should be combined into one function here perhaps
+        remove_empty_paragraphs(inner_soup)
 
-        remove_extra_wrappers(inner_soup)
-
-        # MOD:
+        # FIXES
         replace_divider_lines(inner_soup)
-
-         # MOD: 
         fix_headings(inner_soup)
-
-        # MOD: # ORDER MATTERS
-        fix_paragraph_spacing(inner_soup)
-
         # TODO XXX!!!: append links extracted from excerpt
+        add_paragraph_spacers(inner_soup)
 
-        # MOD: delete all style and other extraneous tags (can probably happen near the end)
+        # FINAL CLEAN-UP
         remove_extra_attributes(inner_soup, [
             'style',
             'class',
@@ -70,20 +68,36 @@ def remove_summary_block(soup: BeautifulSoup) -> None:
     for block in blocks_to_remove:
         block.extract()
 
-def fix_paragraph_spacing(soup: BeautifulSoup) -> None:
+def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     """
-    Ensures that there is spacing between paragraphs, titles, etc.
+    Unwraps all uneccessary divs and spans
+    """
+    wrapper_div_tags = soup.find_all('div', class_='sqs-html-content')
 
-    Kind of a hacky fix because it uses `<h6>` headings as spacers, but its all I could get Wix to respect.
+    for tag in wrapper_div_tags:
+        tag.unwrap()
+
+    wrapper_span_tags = soup.find_all('span')
+
+    for tag in wrapper_span_tags:
+        tag.unwrap()
+
+def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
     """
-    # delete all empty p tags
+    delete all empty p tags
+    """
     p_tags = soup.find_all('p')
 
     for p in p_tags:
         if p.get_text(strip=True) == '':
             p.extract()
 
-    # add a "spacer" heading after every top-level element
+def add_paragraph_spacers(soup: BeautifulSoup) -> None:
+    """
+    Ensures that there is spacing between paragraphs, titles, etc.
+
+    Kind of a hacky fix because it uses `<h6>` headings as spacers, but its all I could get Wix to respect.
+    """
     top_level_tags = soup.find_all(True, recursive=False)
 
     for tag in top_level_tags:
@@ -109,21 +123,6 @@ def fix_headings(soup: BeautifulSoup) -> None:
 
     for tag in large_text_tags:
         tag.name = 'h4'
-        
-
-def remove_extra_wrappers(soup: BeautifulSoup) -> None:
-    """
-    Unwraps all uneccessary divs and spans
-    """
-    wrapper_div_tags = soup.find_all('div', class_='sqs-html-content')
-
-    for tag in wrapper_div_tags:
-        tag.unwrap()
-
-    wrapper_span_tags = soup.find_all('span')
-
-    for tag in wrapper_span_tags:
-        tag.unwrap()
 
 def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
     for tag in soup.find_all(True):
@@ -134,6 +133,7 @@ def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
 
 def create_better_excerpt_tag(excerpt_tag):
     '''
+    TODO
     Doesn't do much yet. 
     '''
     inner_soup = BeautifulSoup(excerpt_tag.string, 'html.parser')
