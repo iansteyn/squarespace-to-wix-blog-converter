@@ -23,7 +23,6 @@ PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
 # -----------------------------------------------
 # FUNCTIONS
 
-# TODO: clean content
 def get_clean_content(content:str) -> CData:
 
     content_soup = BeautifulSoup(content, 'html.parser')
@@ -126,19 +125,19 @@ def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
                 del tag[attr]
 ## ----
 
-def create_better_excerpt_tag(excerpt_tag):
+def get_clean_excerpt(excerpt:str) -> CData:
     '''
     TODO
     Doesn't do much yet. 
     '''
-    inner_soup = BeautifulSoup(excerpt_tag.string, 'html.parser')
+    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
 
-    return CData(stringify_soup(inner_soup))
+    return CData(stringify_soup(excerpt_soup))
 
 # TODO: unescape weird html characters in titles?
 
 # HELPERS
-def stringify_soup(soup: BeautifulSoup):
+def stringify_soup(soup: BeautifulSoup) -> str:
     """
     Returns a string representation of the given `soup`, formatted according to the global script settings.
     """
@@ -167,9 +166,7 @@ items = soup.find_all('item')
 for item in items:
 
     modify_xml_tag(item, 'content:encoded', get_clean_content)
-    
-    excerpt_tag = item.find('excerpt:encoded')
-    excerpt_tag.string = create_better_excerpt_tag(excerpt_tag)
+    modify_xml_tag(item, 'excerpt:encoded', get_clean_excerpt)
 
 # --------------------------------
 # FINISH
