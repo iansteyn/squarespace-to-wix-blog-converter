@@ -7,6 +7,7 @@ General Notes
 # -----------------------------------------------
 # IMPORTS AND WARNING FILTERS
 from bs4 import BeautifulSoup, Tag, CData
+import copy
 
 # ---------------------------------------------------
 # CONSTANTS/CONFIG
@@ -132,7 +133,24 @@ def get_clean_excerpt(excerpt:str) -> CData:
     '''
     excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
 
-    return CData(stringify_soup(excerpt_soup))
+    # TODO unwrap everything
+
+    return CData(stringify_soup(excerpt_soup)),
+
+def extract_excerpt_links(excerpt:str) -> list[Tag]:
+    '''
+    Returns a list of `<a>` tags (as `Tag` objects) extracted from the given `excerpt`
+    '''
+    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
+
+    extracted_tags = []
+    a_tags = excerpt_soup.find_all('a')
+
+    for a in a_tags:
+        extracted_tags.append(copy.copy(a))
+
+    return extracted_tags
+
 
 # TODO: unescape weird html characters in titles?
 
@@ -154,6 +172,7 @@ def modify_xml_tag(parent_tag: Tag, tag_name: str, cleaner_func) -> None:
         tag.string = cleaner_func(tag.string)
 
 # ------------------------------------------------------------
+# ------------------------------------------------------------
 # SETUP
 
 with open(INPUT_FILE_PATH, 'rb') as file:
@@ -164,6 +183,8 @@ with open(INPUT_FILE_PATH, 'rb') as file:
 items = soup.find_all('item')
 
 for item in items:
+
+    # I will have to change how this works because of the separation of extract_excerpt_links (and maybe scrap modify_xml_tag altogether)
 
     modify_xml_tag(item, 'content:encoded', get_clean_content)
     modify_xml_tag(item, 'excerpt:encoded', get_clean_excerpt)
