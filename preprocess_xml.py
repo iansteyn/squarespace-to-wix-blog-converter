@@ -22,7 +22,7 @@ test_input_path = "short-copy-for-testing.xml"
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
-PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
+PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -35,22 +35,19 @@ def create_better_content_tag(content_tag) -> CData:
         # MOD: # ORDER MATTERS
         remove_summary_block(inner_soup)
 
-        # MOD: # ORDER MATTERS
-        fix_paragraph_spacing(inner_soup)
-
-        # MOD: Replace <p class="sqsrte-large"> with <h4> # ORDER MATTERS
-        # TODO: investigate. It seems only heading tags cause real spacing
-        large_text_tags = inner_soup.find_all("p", class_="sqsrte-large")
-
-        for tag in large_text_tags:
-            tag.name = 'h4'
-            del tag['class']
+        remove_extra_wrappers(inner_soup)
 
         # MOD:
         replace_divider_lines(inner_soup)
 
-        # MOD:
-        remove_extra_wrappers(inner_soup)
+        # MOD: # ORDER MATTERS
+        fix_paragraph_spacing(inner_soup)
+
+        # MOD: Replace <p class="sqsrte-large"> with <h4> # ORDER MATTERS
+        large_text_tags = inner_soup.find_all("p", class_="sqsrte-large")
+
+        for tag in large_text_tags:
+            tag.name = 'h4'
 
         # TODO: simplify list items
             # For some reason, each list item is its own list, AND is wrapped inside of a <p> on the inside. 
@@ -88,14 +85,20 @@ def fix_paragraph_spacing(soup: BeautifulSoup) -> None:
     """
     Ensures that there is spacing between paragraphs, titles, etc.
 
-    Note: modifies the given `soup` directly
-    older TODO: may have to check whether more <br>s are needed, eg after lists and titles
+    Kind of a hacky fix because it uses `<h6>` headings as spacers, but its all I could get Wix to respect.
     """
+    # delete all empty p tags
     p_tags = soup.find_all('p')
 
     for p in p_tags:
         if p.get_text(strip=True) == '':
-            p.string = '\xa0'
+            p.extract()
+
+    # add a "spacer" heading after every top-level element
+    top_level_tags = soup.find_all(True, recursive=False)
+
+    for tag in top_level_tags:
+        tag.insert_after(soup.new_tag('h6'))
 
 def replace_divider_lines(soup: BeautifulSoup) -> None:
     """
@@ -123,7 +126,7 @@ def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     for tag in wrapper_span_tags:
         tag.unwrap()
 
-def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]):
+def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
     for tag in soup.find_all(True):
         for attr in attributes:
             if tag.has_attr(attr):
