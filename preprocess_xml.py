@@ -40,24 +40,13 @@ def create_better_content_tag(content_tag) -> CData:
         # MOD:
         replace_divider_lines(inner_soup)
 
+         # MOD: 
+        fix_headings(inner_soup)
+
         # MOD: # ORDER MATTERS
         fix_paragraph_spacing(inner_soup)
 
-        # MOD: Replace <p class="sqsrte-large"> with <h4> # ORDER MATTERS
-        large_text_tags = inner_soup.find_all("p", class_="sqsrte-large")
-
-        for tag in large_text_tags:
-            tag.name = 'h4'
-
-        # TODO: simplify list items
-            # For some reason, each list item is its own list, AND is wrapped inside of a <p> on the inside. 
-            # I want to simplify this. However, some lists are also structured more normally
-        
-        # TODO: append links extracted from excerpt
-        
-        # TODO: remove all remaining extra classes and styles
-
-        # TODO: unescape weird html characters
+        # TODO XXX!!!: append links extracted from excerpt
 
         # MOD: delete all style and other extraneous tags (can probably happen near the end)
         remove_extra_attributes(inner_soup, [
@@ -112,6 +101,16 @@ def replace_divider_lines(soup: BeautifulSoup) -> None:
         new_tag.string = "———"
         tag.replace_with(new_tag)
 
+def fix_headings(soup: BeautifulSoup) -> None:
+    """
+    Replaces `<p class="sqsrte-large">` with `<h4>` so they register as actual headings
+    """
+    large_text_tags = soup.find_all("p", class_="sqsrte-large")
+
+    for tag in large_text_tags:
+        tag.name = 'h4'
+        
+
 def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     """
     Unwraps all uneccessary divs and spans
@@ -140,6 +139,8 @@ def create_better_excerpt_tag(excerpt_tag):
     inner_soup = BeautifulSoup(excerpt_tag.string, 'html.parser')
 
     return CData(stringify_soup(inner_soup))
+
+# TODO: unescape weird html characters in titles?
 
 # HELPERS
 def stringify_soup(soup: BeautifulSoup):
