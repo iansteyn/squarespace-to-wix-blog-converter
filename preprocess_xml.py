@@ -6,11 +6,8 @@ General Notes
 """
 # -----------------------------------------------
 # IMPORTS AND WARNING FILTERS
-from bs4 import BeautifulSoup, Tag#, XMLParsedAsHTMLWarning
+from bs4 import BeautifulSoup, Tag
 from bs4.element import CData
-# import warnings
-
-# warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 # ---------------------------------------------------
 # CONSTANTS/CONFIG
