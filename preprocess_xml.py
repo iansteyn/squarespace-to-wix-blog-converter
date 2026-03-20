@@ -6,7 +6,7 @@ General Notes
 """
 # -----------------------------------------------
 # IMPORTS AND WARNING FILTERS
-from bs4 import BeautifulSoup #, XMLParsedAsHTMLWarning
+from bs4 import BeautifulSoup, Tag#, XMLParsedAsHTMLWarning
 from bs4.element import CData
 # import warnings
 
@@ -22,39 +22,38 @@ test_input_path = "short-copy-for-testing.xml"
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
-PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
+PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
 
 # TODO: clean content
-def create_better_content_tag(content_tag) -> CData:
-    if content_tag and content_tag.string:
+def get_clean_content(content:str) -> CData:
 
-        inner_soup = BeautifulSoup(content_tag.string, 'html.parser')
+    content_soup = BeautifulSoup(content, 'html.parser')
 
-        # Remember: ORDER MATTERS
+    # Remember: ORDER MATTERS
 
-        # REMOVE JUNK
-        remove_summary_block(inner_soup)
-        remove_extra_wrappers(inner_soup) # TODO actually this and r_e_p and a_p_s must be a linear process so they should be combined into one function here perhaps
-        remove_empty_paragraphs(inner_soup)
+    # REMOVE JUNK
+    remove_summary_block(content_soup)
+    remove_extra_wrappers(content_soup) # TODO actually this and r_e_p and a_p_s must be a linear process so they should be combined into one function here perhaps
+    remove_empty_paragraphs(content_soup)
 
-        # FIXES
-        replace_divider_lines(inner_soup)
-        fix_headings(inner_soup)
-        # TODO XXX!!!: append links extracted from excerpt
-        add_paragraph_spacers(inner_soup)
+    # FIXES
+    replace_divider_lines(content_soup)
+    fix_headings(content_soup)
+    # TODO XXX!!!: append links extracted from excerpt
+    add_paragraph_spacers(content_soup)
 
-        # FINAL CLEAN-UP
-        remove_extra_attributes(inner_soup, [
-            'style',
-            'class',
-            'data-rte-preserve-empty',
-            'data-rte-list'
-        ])
+    # FINAL CLEAN-UP
+    remove_extra_attributes(content_soup, [
+        'style',
+        'class',
+        'data-rte-preserve-empty',
+        'data-rte-list'
+    ])
 
-        return CData(stringify_soup(inner_soup))
+    return CData(stringify_soup(content_soup))
     
 ## ----
 def remove_summary_block(soup: BeautifulSoup) -> None:
@@ -152,12 +151,18 @@ def stringify_soup(soup: BeautifulSoup):
     else:
         return str(soup)
 
+# ---
+def modify_xml_tag(parent_tag: Tag, tag_name: str, cleaner_func) -> None:
+    tag = parent_tag.find(tag_name)
+
+    if tag and tag.string:
+        tag.string = cleaner_func(tag.string)
+
 # ------------------------------------------------------------
 # SETUP
 
-
 with open(INPUT_FILE_PATH, 'rb') as file:
-    soup = BeautifulSoup(file, 'xml') # using html.parser instead of xml, because lxml strips CDATA and messes everything up
+    soup = BeautifulSoup(file, 'xml')
 
 # -----------------------------------
 # LOOP THROUGH ITEMS
@@ -165,8 +170,7 @@ items = soup.find_all('item')
 
 for item in items:
 
-    content_tag = item.find('content:encoded')
-    content_tag.string = create_better_content_tag(content_tag)
+    modify_xml_tag(item, 'content:encoded', get_clean_content)
     
     excerpt_tag = item.find('excerpt:encoded')
     excerpt_tag.string = create_better_excerpt_tag(excerpt_tag)
