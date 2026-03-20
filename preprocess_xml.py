@@ -45,20 +45,11 @@ def create_better_content_tag(content_tag):
             tag.name = 'h4'
             del tag['class']
 
-        # MOD: replace <hr> with <p>---</p>
-            # TODO: may require more space - see <br> todo above
-        hr_tags = inner_soup.find_all("hr")
+        # MOD:
+        replace_divider_lines(inner_soup)
 
-        for tag in hr_tags:
-            new_tag = soup.new_tag('p')
-            new_tag.string = "———"
-            tag.replace_with(new_tag)
-
-        # MOD: remove uneccesary divs
-        wrapper_div_tags = inner_soup.find_all('div', class_='sqs-html-content')
-
-        for tag in wrapper_div_tags:
-            tag.unwrap()
+        # MOD:
+        remove_extra_wrappers(inner_soup)
 
         # TODO: simplify list items
             # For some reason, each list item is its own list, AND is wrapped inside of a <p> on the inside. 
@@ -71,6 +62,7 @@ def create_better_content_tag(content_tag):
         # TODO: unescape weird html characters
 
         # MOD: delete all style and other extraneous tags (can probably happen near the end)
+        # TODO: turn into function delete_extra_attributes
         for tag in inner_soup.find_all(True):
             if tag.has_attr('style'):
                 del tag['style']
@@ -105,6 +97,24 @@ def fix_paragraph_spacing(soup: BeautifulSoup):
         if p.get_text(strip=True) == '':
             br = soup.new_tag('br')
             p.replace_with(br)
+
+def replace_divider_lines(soup: BeautifulSoup):
+    """
+    Wix doesn't use `<hr>` elements. Replace them with `<p>---</p>` in case the visual division was important.
+    """
+    # TODO: may require more space - see <br> todo above
+    hr_tags = soup.find_all("hr")
+
+    for tag in hr_tags:
+        new_tag = soup.new_tag('p')
+        new_tag.string = "———"
+        tag.replace_with(new_tag)
+
+def remove_extra_wrappers(soup: BeautifulSoup):
+    wrapper_div_tags = soup.find_all('div', class_='sqs-html-content')
+
+    for tag in wrapper_div_tags:
+        tag.unwrap()
 ## ----
 
 def create_better_excerpt_tag(excerpt_tag):
