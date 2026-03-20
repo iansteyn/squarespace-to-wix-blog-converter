@@ -22,7 +22,7 @@ test_input_path = "short-copy-for-testing.xml"
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
-PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
+PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -63,13 +63,12 @@ def create_better_content_tag(content_tag):
 
         # MOD: delete all style and other extraneous tags (can probably happen near the end)
         # TODO: turn into function delete_extra_attributes
-        for tag in inner_soup.find_all(True):
-            if tag.has_attr('style'):
-                del tag['style']
-            if tag.has_attr('data-rte-preserve-empty'):
-                del tag['data-rte-preserve-empty']
-            if tag.has_attr('class'):
-                del tag['class']
+        remove_extra_attributes(inner_soup, [
+            'style',
+            'class',
+            'data-rte-preserve-empty',
+            'data-rte-list'
+        ])
 
         # TODO: remove all spans?
 
@@ -90,7 +89,7 @@ def remove_summary_block(soup: BeautifulSoup):
 def fix_paragraph_spacing(soup: BeautifulSoup):
     """
     Ensures that there is spacing between paragraphs, titles, etc.
-    
+
     Note: modifies the given `soup` directly
     older TODO: may have to check whether more <br>s are needed, eg after lists and titles
     """
@@ -117,6 +116,12 @@ def remove_extra_wrappers(soup: BeautifulSoup):
 
     for tag in wrapper_div_tags:
         tag.unwrap()
+
+def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]):
+    for tag in soup.find_all(True):
+        for attr in attributes:
+            if tag.has_attr(attr):
+                del tag[attr]
 ## ----
 
 def create_better_excerpt_tag(excerpt_tag):
