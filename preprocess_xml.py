@@ -32,11 +32,8 @@ def create_better_content_tag(content_tag):
 
         inner_soup = BeautifulSoup(content_tag.string, 'html.parser')
 
-        # MOD: Delete summary block section # ORDER MATTERS
-        blocks_to_remove = inner_soup.find_all("div", class_="summary-block-wrapper")
-        
-        for block in blocks_to_remove:
-            block.extract()
+        # MOD: # ORDER MATTERS
+        remove_summary_block(inner_soup)
 
         # MOD: # ORDER MATTERS
         fix_paragraph_spacing(inner_soup)
@@ -85,10 +82,22 @@ def create_better_content_tag(content_tag):
         return CData(stringify_soup(inner_soup))
     
 ## ----
+def remove_summary_block(soup: BeautifulSoup):
+    """
+    Delete Squarespace's large summary block section
+
+    Note: modifies the given `soup` directly
+    """
+    blocks_to_remove = soup.find_all("div", class_="summary-block-wrapper")
+        
+    for block in blocks_to_remove:
+        block.extract()
+
 def fix_paragraph_spacing(soup: BeautifulSoup):
     """
     Note: modifies the given `soup` directly
-    TODO: may have to check whether more <br>s are needed, eg after lists and titles
+    TODO: this doesn't actually work
+    older TODO: may have to check whether more <br>s are needed, eg after lists and titles
     """
     p_tags = soup.find_all('p')
 
