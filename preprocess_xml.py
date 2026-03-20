@@ -38,14 +38,8 @@ def create_better_content_tag(content_tag):
         for block in blocks_to_remove:
             block.extract()
 
-        # MOD: replace empty <p> tags with <br/> # ORDER MATTERS
-            # TODO: may have to check whether more <br>s are needed, eg after lists and titles
-        p_tags = inner_soup.find_all('p')
-
-        for p in p_tags:
-            if p.get_text(strip=True) == '':
-                br = inner_soup.new_tag('br')
-                p.replace_with(br)
+        # MOD: # ORDER MATTERS
+        fix_paragraph_spacing(inner_soup)
 
         # MOD: Replace <p class="sqsrte-large"> with <h4> # ORDER MATTERS
         large_text_tags = inner_soup.find_all("p", class_="sqsrte-large")
@@ -89,6 +83,20 @@ def create_better_content_tag(content_tag):
         # TODO: remove all spans?
 
         return CData(stringify_soup(inner_soup))
+    
+## ----
+def fix_paragraph_spacing(soup: BeautifulSoup):
+    """
+    Note: modifies the given `soup` directly
+    TODO: may have to check whether more <br>s are needed, eg after lists and titles
+    """
+    p_tags = soup.find_all('p')
+
+    for p in p_tags:
+        if p.get_text(strip=True) == '':
+            br = soup.new_tag('br')
+            p.replace_with(br)
+## ----
 
 def create_better_excerpt_tag(excerpt_tag):
     '''
