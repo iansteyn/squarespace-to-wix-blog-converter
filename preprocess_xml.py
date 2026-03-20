@@ -128,14 +128,16 @@ def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
 
 def get_clean_excerpt(excerpt:str) -> CData:
     '''
-    TODO
-    Doesn't do much yet. 
+    Basically just unwraps all tags and returns a plaintext (but still CData-encased) version of the excerpt
     '''
     excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
 
-    # TODO unwrap everything
+    all_tags = excerpt_soup.find_all(True)
 
-    return CData(stringify_soup(excerpt_soup)),
+    for tag in all_tags:
+        tag.unwrap()
+
+    return CData(stringify_soup(excerpt_soup))
 
 def extract_excerpt_links(excerpt:str) -> list[Tag]:
     '''
@@ -187,6 +189,8 @@ for item in items:
 
     modify_xml_tag(item, 'content:encoded', get_clean_content)
     modify_xml_tag(item, 'excerpt:encoded', get_clean_excerpt)
+
+    # extracted_links = extract_excerpt_links()
 
 # --------------------------------
 # FINISH
