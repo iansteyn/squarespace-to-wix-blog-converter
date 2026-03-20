@@ -22,7 +22,7 @@ test_input_path = "short-copy-for-testing.xml"
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
-PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
+PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -68,6 +68,8 @@ def create_better_content_tag(content_tag):
                 del tag['style']
             if tag.has_attr('data-rte-preserve-empty'):
                 del tag['data-rte-preserve-empty']
+            if tag.has_attr('class'):
+                del tag['class']
 
         # TODO: remove all spans?
 
@@ -87,16 +89,16 @@ def remove_summary_block(soup: BeautifulSoup):
 
 def fix_paragraph_spacing(soup: BeautifulSoup):
     """
+    Ensures that there is spacing between paragraphs, titles, etc.
+    
     Note: modifies the given `soup` directly
-    TODO: this doesn't actually work
     older TODO: may have to check whether more <br>s are needed, eg after lists and titles
     """
     p_tags = soup.find_all('p')
 
     for p in p_tags:
         if p.get_text(strip=True) == '':
-            br = soup.new_tag('br')
-            p.replace_with(br)
+            p.string = '\xa0'
 
 def replace_divider_lines(soup: BeautifulSoup):
     """
