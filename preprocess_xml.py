@@ -6,8 +6,7 @@ General Notes
 """
 # -----------------------------------------------
 # IMPORTS AND WARNING FILTERS
-from bs4 import BeautifulSoup, Tag
-from bs4.element import CData
+from bs4 import BeautifulSoup, Tag, CData
 
 # ---------------------------------------------------
 # CONSTANTS/CONFIG
