@@ -1,6 +1,8 @@
 """
 TODO: file description
-TODO: uninstall lxml and dependencies
+
+General Notes
+- I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
 """
 # -----------------------------------------------
 # IMPORTS AND WARNING FILTERS
@@ -9,6 +11,18 @@ from bs4.element import CData
 # import warnings
 
 # warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
+# ---------------------------------------------------
+# CONSTANTS/CONFIG
+# these are things which should be made into parameters if I publish this script for general use
+
+# NOTE: the input and output folders may have to be manually created since git doesn't consider directories files
+real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
+test_input_path = "short-copy-for-testing.xml"
+INPUT_FILE_PATH = "./input_xml/" + test_input_path
+OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
+
+PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -63,6 +77,8 @@ def create_better_content_tag(content_tag):
         
         # TODO: remove all remaining extra classes and styles
 
+        # TODO: unescape weird html characters
+
         # MOD: delete all style and other extraneous tags (can probably happen near the end)
         for tag in inner_soup.find_all(True):
             if tag.has_attr('style'):
@@ -72,7 +88,7 @@ def create_better_content_tag(content_tag):
 
         # TODO: remove all spans?
 
-        return CData(str(inner_soup.prettify()))
+        return CData(stringify_soup(inner_soup))
 
 def create_better_excerpt_tag(excerpt_tag):
     '''
@@ -80,16 +96,21 @@ def create_better_excerpt_tag(excerpt_tag):
     '''
     inner_soup = BeautifulSoup(excerpt_tag.string, 'html.parser')
 
-    return CData(str(inner_soup))
+    return CData(stringify_soup(inner_soup))
+
+# HELPERS
+def stringify_soup(soup: BeautifulSoup):
+    """
+    Returns a string representation of the given `soup`, formatted according to the global script settings.
+    """
+    if PRETTIFY:
+        return soup.prettify()
+    else:
+        return str(soup)
 
 # ------------------------------------------------------------
 # SETUP
 
-# NOTE: the input and output folders may have to be manually created since git doesn't consider directories files
-real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
-test_input_path = "short-copy-for-testing.xml"
-INPUT_FILE_PATH = "./input_xml/" + test_input_path
-OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
 with open(INPUT_FILE_PATH, 'rb') as file:
     soup = BeautifulSoup(file, 'xml') # using html.parser instead of xml, because lxml strips CDATA and messes everything up
@@ -109,7 +130,7 @@ for item in items:
 # --------------------------------
 # FINISH
 
-print(f"Modified {len(items)} test posts.")
-
 with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
-    file.write(str(soup.prettify()))
+    file.write(stringify_soup(soup))
+
+print(f"Modified {len(items)} test posts.")
