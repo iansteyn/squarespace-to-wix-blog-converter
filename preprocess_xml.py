@@ -27,7 +27,7 @@ PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 # -----------------------------------------------
 # FUNCTIONS
 
-def create_better_content_tag(content_tag):
+def create_better_content_tag(content_tag) -> CData:
     if content_tag and content_tag.string:
 
         inner_soup = BeautifulSoup(content_tag.string, 'html.parser')
@@ -39,6 +39,7 @@ def create_better_content_tag(content_tag):
         fix_paragraph_spacing(inner_soup)
 
         # MOD: Replace <p class="sqsrte-large"> with <h4> # ORDER MATTERS
+        # TODO: investigate. It seems only heading tags cause real spacing
         large_text_tags = inner_soup.find_all("p", class_="sqsrte-large")
 
         for tag in large_text_tags:
@@ -62,7 +63,6 @@ def create_better_content_tag(content_tag):
         # TODO: unescape weird html characters
 
         # MOD: delete all style and other extraneous tags (can probably happen near the end)
-        # TODO: turn into function delete_extra_attributes
         remove_extra_attributes(inner_soup, [
             'style',
             'class',
@@ -70,12 +70,10 @@ def create_better_content_tag(content_tag):
             'data-rte-list'
         ])
 
-        # TODO: remove all spans?
-
         return CData(stringify_soup(inner_soup))
     
 ## ----
-def remove_summary_block(soup: BeautifulSoup):
+def remove_summary_block(soup: BeautifulSoup) -> None:
     """
     Delete Squarespace's large summary block section
 
@@ -86,7 +84,7 @@ def remove_summary_block(soup: BeautifulSoup):
     for block in blocks_to_remove:
         block.extract()
 
-def fix_paragraph_spacing(soup: BeautifulSoup):
+def fix_paragraph_spacing(soup: BeautifulSoup) -> None:
     """
     Ensures that there is spacing between paragraphs, titles, etc.
 
@@ -99,7 +97,7 @@ def fix_paragraph_spacing(soup: BeautifulSoup):
         if p.get_text(strip=True) == '':
             p.string = '\xa0'
 
-def replace_divider_lines(soup: BeautifulSoup):
+def replace_divider_lines(soup: BeautifulSoup) -> None:
     """
     Wix doesn't use `<hr>` elements. Replace them with `<p>---</p>` in case the visual division was important.
     """
@@ -111,10 +109,18 @@ def replace_divider_lines(soup: BeautifulSoup):
         new_tag.string = "———"
         tag.replace_with(new_tag)
 
-def remove_extra_wrappers(soup: BeautifulSoup):
+def remove_extra_wrappers(soup: BeautifulSoup) -> None:
+    """
+    Unwraps all uneccessary divs and spans
+    """
     wrapper_div_tags = soup.find_all('div', class_='sqs-html-content')
 
     for tag in wrapper_div_tags:
+        tag.unwrap()
+
+    wrapper_span_tags = soup.find_all('span')
+
+    for tag in wrapper_span_tags:
         tag.unwrap()
 
 def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]):
