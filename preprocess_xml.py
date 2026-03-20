@@ -61,7 +61,7 @@ def remove_summary_block(soup: BeautifulSoup) -> None:
     blocks_to_remove = soup.find_all("div", class_="summary-block-wrapper")
         
     for block in blocks_to_remove:
-        block.extract()
+        block.decompose()
 
 def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     """
@@ -85,7 +85,7 @@ def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
 
     for p in p_tags:
         if p.get_text(strip=True) == '':
-            p.extract()
+            p.decompose()
 
 def add_paragraph_spacers(soup: BeautifulSoup) -> None:
     """
@@ -150,7 +150,6 @@ def extract_excerpt_links(excerpt:str) -> list[Tag]:
         extracted_tags.append(copy.copy(a))
 
     return extracted_tags
-
 
 # TODO: unescape weird html characters in titles?
 
