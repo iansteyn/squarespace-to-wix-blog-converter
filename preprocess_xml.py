@@ -33,10 +33,10 @@ def main() -> None:
 
     # SETUP
     with open(INPUT_FILE_PATH, 'rb') as file:
-        soup = BeautifulSoup(file, 'xml')
+        xml_soup = BeautifulSoup(file, 'xml')
 
     # LOOP THROUGH ITEMS
-    items = soup.find_all('item')
+    items = xml_soup.find_all('item')
 
     for item in items:
 
@@ -48,13 +48,13 @@ def main() -> None:
             continue
 
         extracted_links = extract_excerpt_links(excerpt_tag.string)
-        content_tag.string = get_clean_content(content_tag.string, extracted_links)
 
         excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
+        content_tag.string = get_clean_content(content_tag.string, extracted_links)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
-        file.write(stringify_soup(soup))
+        file.write(stringify_soup(xml_soup))
 
     print(f"Modified {len(items)} posts.")
 
