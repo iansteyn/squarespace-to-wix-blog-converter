@@ -24,9 +24,9 @@ PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 # -----------------------------------------------
 # FUNCTIONS
 
-def get_clean_content(content:str) -> CData:
+def get_clean_content(content:str, excerpt_links: list[Tag]) -> CData:
     """
-    Removes squarespace junk, fixes formatting, and cleans up html. 
+    Removes squarespace junk, fixes formatting, appends `excerpt_links`, and cleans up html. 
     
     Returns a version of the given `content` string as a cleaned `CData` object,
     ready to be reassigned to the `.string` property of the content tag.
@@ -39,12 +39,14 @@ def get_clean_content(content:str) -> CData:
     # REMOVE JUNK
     remove_summary_block(content_soup)
     remove_extra_wrappers(content_soup) # TODO actually this and r_e_p and a_p_s must be a linear process so they should be combined into one function here perhaps
-    remove_empty_paragraphs(content_soup)
+    remove_empty_paragraphs(content_soup) # hmmm.. except remove empty paragraphs must happen BEFORE fix_headings
 
     # FIXES
     replace_divider_lines(content_soup)
     fix_headings(content_soup)
-    # TODO XXX!!!: append links extracted from excerpt
+
+    append_links(content_soup, excerpt_links)
+
     add_paragraph_spacers(content_soup)
 
     # FINAL CLEAN-UP
@@ -122,6 +124,30 @@ def fix_headings(soup: BeautifulSoup) -> None:
     for tag in large_text_tags:
         tag.name = 'h4'
 
+def append_links(soup: BeautifulSoup, link_list: list[Tag]):
+    """
+    Appends links to `soup` in a nicely formatted manner.
+    """
+
+    if not link_list:
+        return
+
+    divider = soup.new_tag('p')
+    divider.string = '———'
+    soup.append(divider)
+
+    heading = soup.new_tag('h4')
+    heading.string = 'Links'
+    soup.append(heading)
+
+    ul = soup.new_tag('ul')
+    soup.append(ul)
+
+    for a_tag in link_list:
+        li = soup.new_tag('li')
+        li.append(a_tag)
+        ul.append(li)
+
 def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
     for tag in soup.find_all(True):
         for attr in attributes:
@@ -156,9 +182,7 @@ def extract_excerpt_links(excerpt:str) -> list[Tag]:
 
     return extracted_tags
 
-def format_excerpt_links(link_list: list[Tag]):
-    # todo
-    pass
+
 
 # TODO: unescape weird html characters in titles?
 
@@ -201,11 +225,9 @@ for item in items:
         continue
 
     extracted_links = extract_excerpt_links(excerpt_tag.string)
-    print(extracted_links)
+    content_tag.string = get_clean_content(content_tag.string, extracted_links)
 
     excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
-
-    content_tag.string = get_clean_content(content_tag.string)
 
 
 # --------------------------------
