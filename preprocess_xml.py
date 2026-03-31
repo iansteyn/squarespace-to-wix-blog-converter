@@ -25,6 +25,12 @@ PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
 # FUNCTIONS
 
 def get_clean_content(content:str) -> CData:
+    """
+    Removes squarespace junk, fixes formatting, and cleans up html. 
+    
+    Returns a version of the given `content` string as a cleaned `CData` object,
+    ready to be reassigned to the `.string` property of the content tag.
+    """
 
     content_soup = BeautifulSoup(content, 'html.parser')
 
@@ -153,6 +159,10 @@ def extract_excerpt_links(excerpt:str) -> list[Tag]:
 
     return extracted_tags
 
+def format_excerpt_links(link_list: list[Tag]):
+    # todo
+    pass
+
 # TODO: unescape weird html characters in titles?
 
 # HELPERS
@@ -187,10 +197,23 @@ for item in items:
 
     # I will have to change how this works because of the separation of extract_excerpt_links (and maybe scrap modify_xml_tag altogether)
 
-    modify_xml_tag(item, 'content:encoded', get_clean_content)
-    modify_xml_tag(item, 'excerpt:encoded', get_clean_excerpt)
+    # modify_xml_tag(item, 'content:encoded', get_clean_content)
+    # modify_xml_tag(item, 'excerpt:encoded', get_clean_excerpt)
 
-    # extracted_links = extract_excerpt_links()
+    excerpt_tag = item.find('excerpt:encoded')
+    content_tag = item.find('content:encoded')
+
+    # This is unlikely, but just in case:
+    if not excerpt_tag and not content_tag:
+        continue
+
+    extracted_links = extract_excerpt_links(excerpt_tag.string)
+    print(extracted_links)
+    excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
+
+    content_tag.string = get_clean_content(content_tag.string)
+
+    
 
 # --------------------------------
 # FINISH
