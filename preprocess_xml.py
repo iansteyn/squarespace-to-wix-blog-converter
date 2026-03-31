@@ -19,7 +19,7 @@ test_input_path = "short-copy-for-testing.xml"
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
-PRETTIFY = False # NOTE: Set to false for final output that gets uploaded to Wix
+PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -73,15 +73,12 @@ def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     """
     Unwraps all uneccessary divs and spans
     """
-    wrapper_div_tags = soup.find_all('div', class_='sqs-html-content')
+    extra_divs = soup.find_all('div', class_='sqs-html-content')
+    extra_spans = soup.find_all('span')
 
-    for tag in wrapper_div_tags:
+    for tag in (extra_divs + extra_spans):
         tag.unwrap()
 
-    wrapper_span_tags = soup.find_all('span')
-
-    for tag in wrapper_span_tags:
-        tag.unwrap()
 
 def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
     """
@@ -176,11 +173,12 @@ def stringify_soup(soup: BeautifulSoup) -> str:
         return str(soup)
 
 # ---
-def modify_xml_tag(parent_tag: Tag, tag_name: str, cleaner_func) -> None:
-    tag = parent_tag.find(tag_name)
+# def modify_xml_tag(parent_tag: Tag, tag_name: str, cleaner_func) -> None:
+# TODO: remove this func
+#     tag = parent_tag.find(tag_name)
 
-    if tag and tag.string:
-        tag.string = cleaner_func(tag.string)
+#     if tag and tag.string:
+#         tag.string = cleaner_func(tag.string)
 
 # ------------------------------------------------------------
 # ------------------------------------------------------------
@@ -195,11 +193,6 @@ items = soup.find_all('item')
 
 for item in items:
 
-    # I will have to change how this works because of the separation of extract_excerpt_links (and maybe scrap modify_xml_tag altogether)
-
-    # modify_xml_tag(item, 'content:encoded', get_clean_content)
-    # modify_xml_tag(item, 'excerpt:encoded', get_clean_excerpt)
-
     excerpt_tag = item.find('excerpt:encoded')
     content_tag = item.find('content:encoded')
 
@@ -209,11 +202,11 @@ for item in items:
 
     extracted_links = extract_excerpt_links(excerpt_tag.string)
     print(extracted_links)
+
     excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
 
     content_tag.string = get_clean_content(content_tag.string)
 
-    
 
 # --------------------------------
 # FINISH
