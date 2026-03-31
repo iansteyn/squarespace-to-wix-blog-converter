@@ -196,14 +196,6 @@ def stringify_soup(soup: BeautifulSoup) -> str:
     else:
         return str(soup)
 
-# ---
-# def modify_xml_tag(parent_tag: Tag, tag_name: str, cleaner_func) -> None:
-# TODO: remove this func
-#     tag = parent_tag.find(tag_name)
-
-#     if tag and tag.string:
-#         tag.string = cleaner_func(tag.string)
-
 # ------------------------------------------------------------
 # ------------------------------------------------------------
 # SETUP
