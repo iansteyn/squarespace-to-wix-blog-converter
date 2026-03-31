@@ -4,24 +4,31 @@ TODO: file description
 General Notes
 - I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
 """
-# -----------------------------------------------
+# ---------------------------------------------------
 # IMPORTS
 from bs4 import BeautifulSoup, Tag, CData
 import copy
 
 # ---------------------------------------------------
-# CONSTANTS/CONFIG
+# CONFIG GLOBALS
+"""
+Script configuration constants. Edit these as you wish.
 
-# NOTE: the input and output folders may have to be manually created since git doesn't consider directories files
+- `INPUT_FILE_PATH: str`
+    - Location of the input file, i.e. the XML file you exported from SquareSpace.
+- `OUTPUT_FILE_PATH: str`
+    - Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
+- `PRETTIFY: bool`
+    - Only set to `True` when testing (makes the xml output easier to read).
+    - This MUST be set to `False` when generating the final document for Wix. 
+"""
+
 real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
 test_input_path = "short-copy-for-testing.xml"
+
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
-
-PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
-"""
-desc
-"""
+PRETTIFY = True
 
 # ---------------------------------------------------
 # SCRIPT
@@ -230,7 +237,8 @@ def extract_excerpt_links(excerpt:str) -> list[Tag]:
 
 # TODO: unescape weird html characters in titles?
 
-# HELPERS
+# ----
+
 def stringify_soup(soup: BeautifulSoup) -> str:
     """
     Returns a string representation of the given `soup`, formatted according to the global script settings.
