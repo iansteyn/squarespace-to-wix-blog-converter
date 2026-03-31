@@ -24,9 +24,9 @@ PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 # -----------------------------------------------
 # FUNCTIONS
 
-def get_clean_content(content:str, excerpt_links: list[Tag]) -> CData:
+def get_clean_content(content:str, excerpt_links: list[Tag] = []) -> CData:
     """
-    Removes squarespace junk, fixes formatting, cleans up HTMl, and appends `excerpt_links`. 
+    Removes squarespace junk, fixes formatting, cleans up HTMl, and (optionally) appends `excerpt_links`. 
     
     Returns a version of the given `content` string as a cleaned `CData` object,
     ready to be reassigned to the `.string` property of the content tag.
@@ -47,12 +47,7 @@ def get_clean_content(content:str, excerpt_links: list[Tag]) -> CData:
     fix_spacing(content_soup) # must happen after remove_extra_wrappers
 
     # (3) HTML CLEAN-UP
-    remove_extra_attributes(content_soup, [
-        'style',
-        'class',
-        'data-rte-preserve-empty',
-        'data-rte-list'
-    ]) # must happen after fix_headings
+    remove_extra_attributes(content_soup) # must happen after fix_headings
 
     # (4) APPEND EXCERPT LINKS
     # (this is to somewhat compensate for the loss of SquareSpace's link buttons)
@@ -92,7 +87,15 @@ def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
         if p.get_text(strip=True) == '':
             p.decompose()
 
-def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
+def remove_extra_attributes(
+        soup: BeautifulSoup,
+        attributes: list[str] = ['style', 'class', 'data-rte-preserve-empty', 'data-rte-list']
+) -> None:
+    """
+    Strips all tags in `soup` of extra, unnecessary attributes.
+    
+    By default, these are `style`, `class`, `data-rte-preserve-empty`, and `data-rte-list`. A different list of `attributes` can be passed optionally.
+    """
     for tag in soup.find_all(True):
         for attr in attributes:
             if tag.has_attr(attr):
