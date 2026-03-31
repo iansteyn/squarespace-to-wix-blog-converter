@@ -5,13 +5,12 @@ General Notes
 - I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
 """
 # -----------------------------------------------
-# IMPORTS AND WARNING FILTERS
+# IMPORTS
 from bs4 import BeautifulSoup, Tag, CData
 import copy
 
 # ---------------------------------------------------
 # CONSTANTS/CONFIG
-# these are things which should be made into parameters if I publish this script for general use
 
 # NOTE: the input and output folders may have to be manually created since git doesn't consider directories files
 real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
@@ -20,6 +19,44 @@ INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 
 PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
+"""
+desc
+"""
+
+# ---------------------------------------------------
+# SCRIPT
+
+def main() -> None:
+    """
+    The actual script logic. Called at the bottom of this file.
+    """
+
+    # SETUP
+    with open(INPUT_FILE_PATH, 'rb') as file:
+        soup = BeautifulSoup(file, 'xml')
+
+    # LOOP THROUGH ITEMS
+    items = soup.find_all('item')
+
+    for item in items:
+
+        excerpt_tag = item.find('excerpt:encoded')
+        content_tag = item.find('content:encoded')
+
+        # This is unlikely, but just in case:
+        if not excerpt_tag and not content_tag:
+            continue
+
+        extracted_links = extract_excerpt_links(excerpt_tag.string)
+        content_tag.string = get_clean_content(content_tag.string, extracted_links)
+
+        excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
+
+    # FINISH
+    with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
+        file.write(stringify_soup(soup))
+
+    print(f"Modified {len(items)} posts.")
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -54,7 +91,7 @@ def get_clean_content(content:str, excerpt_links: list[Tag] = []) -> CData:
     append_links(content_soup, excerpt_links) # must happen after all
 
     return CData(stringify_soup(content_soup))
-    
+
 ## ----
 def remove_summary_block(soup: BeautifulSoup) -> None:
     """
@@ -63,7 +100,7 @@ def remove_summary_block(soup: BeautifulSoup) -> None:
     Note: modifies the given `soup` directly
     """
     blocks_to_remove = soup.find_all("div", class_="summary-block-wrapper")
-        
+
     for block in blocks_to_remove:
         block.decompose()
 
@@ -133,7 +170,7 @@ def fix_headings(soup: BeautifulSoup) -> None:
     for tag in large_text_tags:
         tag.name = 'h4'
 
-def append_links(soup: BeautifulSoup, link_list: list[Tag]):
+def append_links(soup: BeautifulSoup, link_list: list[Tag]) -> None:
     """
     Appends links to `soup` in a nicely formatted manner.
     """
@@ -189,7 +226,7 @@ def extract_excerpt_links(excerpt:str) -> list[Tag]:
 
     return extracted_tags
 
-
+## ----
 
 # TODO: unescape weird html characters in titles?
 
@@ -204,35 +241,7 @@ def stringify_soup(soup: BeautifulSoup) -> str:
         return str(soup)
 
 # ------------------------------------------------------------
-# ------------------------------------------------------------
-# SETUP
+# SCRIPT EXECUTION
 
-with open(INPUT_FILE_PATH, 'rb') as file:
-    soup = BeautifulSoup(file, 'xml')
-
-# -----------------------------------
-# LOOP THROUGH ITEMS
-items = soup.find_all('item')
-
-for item in items:
-
-    excerpt_tag = item.find('excerpt:encoded')
-    content_tag = item.find('content:encoded')
-
-    # This is unlikely, but just in case:
-    if not excerpt_tag and not content_tag:
-        continue
-
-    extracted_links = extract_excerpt_links(excerpt_tag.string)
-    content_tag.string = get_clean_content(content_tag.string, extracted_links)
-
-    excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
-
-
-# --------------------------------
-# FINISH
-
-with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
-    file.write(stringify_soup(soup))
-
-print(f"Modified {len(items)} test posts.")
+if __name__ == "__main__":
+    main()
