@@ -38,24 +38,24 @@ def get_clean_content(content:str, excerpt_links: list[Tag]) -> CData:
 
     # (1) REMOVE SQUARESPACE JUNK
     remove_summary_block(content_soup)
-    remove_extra_wrappers(content_soup) # TODO: move into fix_spacing?
-    remove_empty_paragraphs(content_soup) # TODO: move into fix_headings?
+    remove_extra_wrappers(content_soup)
+    remove_empty_paragraphs(content_soup)
 
     # (2) FIX FORMATTING
     fix_divider_lines(content_soup)
     fix_headings(content_soup) # must happen after remove_empty_paragraphs
-    fix_spacing(content_soup) # must happen after remove_extra_wrappers (and fix_headings??)
+    fix_spacing(content_soup) # must happen after remove_extra_wrappers
 
     # (3) HTML CLEAN-UP
-    # must happen after fix_headings
     remove_extra_attributes(content_soup, [
         'style',
         'class',
         'data-rte-preserve-empty',
         'data-rte-list'
-    ])
+    ]) # must happen after fix_headings
 
-    # (4) APPEND EXCERPT LINKS (this is to somewhat compensate for the loss of SquareSpace's link buttons)
+    # (4) APPEND EXCERPT LINKS
+    # (this is to somewhat compensate for the loss of SquareSpace's link buttons)
     append_links(content_soup, excerpt_links) # must happen after all
 
     return CData(stringify_soup(content_soup))
@@ -82,7 +82,6 @@ def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     for tag in (extra_divs + extra_spans):
         tag.unwrap()
 
-
 def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
     """
     delete all empty p tags
@@ -92,6 +91,12 @@ def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
     for p in p_tags:
         if p.get_text(strip=True) == '':
             p.decompose()
+
+def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
+    for tag in soup.find_all(True):
+        for attr in attributes:
+            if tag.has_attr(attr):
+                del tag[attr]
 
 def fix_spacing(soup: BeautifulSoup) -> None:
     """
@@ -152,11 +157,6 @@ def append_links(soup: BeautifulSoup, link_list: list[Tag]):
     for tag in [divider, spacer1, heading, spacer2, ul]:
         soup.append(tag)
 
-def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
-    for tag in soup.find_all(True):
-        for attr in attributes:
-            if tag.has_attr(attr):
-                del tag[attr]
 ## ----
 
 def get_clean_excerpt(excerpt:str) -> CData:
