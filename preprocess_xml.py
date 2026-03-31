@@ -26,7 +26,7 @@ PRETTIFY = True # NOTE: Set to false for final output that gets uploaded to Wix
 
 def get_clean_content(content:str, excerpt_links: list[Tag]) -> CData:
     """
-    Removes squarespace junk, fixes formatting, appends `excerpt_links`, and cleans up html. 
+    Removes squarespace junk, fixes formatting, cleans up HTMl, and appends `excerpt_links`. 
     
     Returns a version of the given `content` string as a cleaned `CData` object,
     ready to be reassigned to the `.string` property of the content tag.
@@ -36,26 +36,27 @@ def get_clean_content(content:str, excerpt_links: list[Tag]) -> CData:
 
     # Remember: ORDER MATTERS
 
-    # REMOVE JUNK
+    # (1) REMOVE SQUARESPACE JUNK
     remove_summary_block(content_soup)
-    remove_extra_wrappers(content_soup) # TODO actually this and r_e_p and a_p_s must be a linear process so they should be combined into one function here perhaps
-    remove_empty_paragraphs(content_soup) # hmmm.. except remove empty paragraphs must happen BEFORE fix_headings
+    remove_extra_wrappers(content_soup) # TODO: move into fix_spacing?
+    remove_empty_paragraphs(content_soup) # TODO: move into fix_headings?
 
-    # FIXES
-    replace_divider_lines(content_soup)
-    fix_headings(content_soup)
+    # (2) FIX FORMATTING
+    fix_divider_lines(content_soup)
+    fix_headings(content_soup) # must happen after remove_empty_paragraphs
+    fix_spacing(content_soup) # must happen after remove_extra_wrappers (and fix_headings??)
 
-    append_links(content_soup, excerpt_links)
-
-    add_paragraph_spacers(content_soup)
-
-    # FINAL CLEAN-UP
+    # (3) HTML CLEAN-UP
+    # must happen after fix_headings
     remove_extra_attributes(content_soup, [
         'style',
         'class',
         'data-rte-preserve-empty',
         'data-rte-list'
     ])
+
+    # (4) APPEND EXCERPT LINKS (this is to somewhat compensate for the loss of SquareSpace's link buttons)
+    append_links(content_soup, excerpt_links) # must happen after all
 
     return CData(stringify_soup(content_soup))
     
@@ -75,7 +76,7 @@ def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     """
     Unwraps all uneccessary divs and spans
     """
-    extra_divs = soup.find_all('div', class_='sqs-html-content')
+    extra_divs = soup.find_all('div')
     extra_spans = soup.find_all('span')
 
     for tag in (extra_divs + extra_spans):
@@ -92,9 +93,9 @@ def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
         if p.get_text(strip=True) == '':
             p.decompose()
 
-def add_paragraph_spacers(soup: BeautifulSoup) -> None:
+def fix_spacing(soup: BeautifulSoup) -> None:
     """
-    Ensures that there is spacing between paragraphs, titles, etc.
+    Ensures that there is spacing between paragraphs, titles, and other top-level elements.
 
     Kind of a hacky fix because it uses `<h6>` headings as spacers, but its all I could get Wix to respect.
     """
@@ -103,7 +104,7 @@ def add_paragraph_spacers(soup: BeautifulSoup) -> None:
     for tag in top_level_tags:
         tag.insert_after(soup.new_tag('h6'))
 
-def replace_divider_lines(soup: BeautifulSoup) -> None:
+def fix_divider_lines(soup: BeautifulSoup) -> None:
     """
     Wix doesn't use `<hr>` elements. Replace them with `<p>---</p>` in case the visual division was important.
     """
@@ -134,19 +135,22 @@ def append_links(soup: BeautifulSoup, link_list: list[Tag]):
 
     divider = soup.new_tag('p')
     divider.string = '———'
-    soup.append(divider)
+
+    spacer1 = soup.new_tag('h6')
+    spacer2 = soup.new_tag('h6')
 
     heading = soup.new_tag('h4')
     heading.string = 'Links'
-    soup.append(heading)
 
     ul = soup.new_tag('ul')
-    soup.append(ul)
 
     for a_tag in link_list:
         li = soup.new_tag('li')
         li.append(a_tag)
         ul.append(li)
+
+    for tag in [divider, spacer1, heading, spacer2, ul]:
+        soup.append(tag)
 
 def remove_extra_attributes(soup: BeautifulSoup, attributes: list[str]) -> None:
     for tag in soup.find_all(True):
