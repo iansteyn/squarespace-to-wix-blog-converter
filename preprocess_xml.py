@@ -50,6 +50,8 @@ def main() -> None:
         excerpt_tag = item.find('excerpt:encoded')
         content_tag = item.find('content:encoded')
         title_tag = item.find('title')
+        link_tag = item.find('link')
+        post_name_tag = item.find('wp:post_name')
 
         # This is unlikely, but just in case:
         # if not excerpt_tag and not content_tag:
@@ -58,9 +60,11 @@ def main() -> None:
         extracted_links = extract_excerpt_links(excerpt_tag.string)
 
         excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
-        content_tag.string = get_clean_content(content_tag.string, extracted_links)
+        content_tag.string = get_clean_content(content_tag.string, extracted_links) # TODO: extracted links should be separately appended? yes
 
         title_tag.string = get_clean_title(title_tag.string)
+        link_tag.string = get_clean_post_url(link_tag.string)
+        post_name_tag = get_clean_post_name(post_name_tag.string)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
@@ -264,11 +268,28 @@ Actually it's more complicated - some links seem to just have nbsp tacked on to 
 
 def get_clean_title(title:str) -> str:
     """
-    Returns a cleaned copy of `title`
-    Fixes double-escaped ampersands and removes unnecessary non-breaking spaces.
+    Returns a cleaned copy of `title`.
+
+    (Fixes double-escaped ampersands and removes unnecessary non-breaking spaces).
     """
     return title.replace("&nbsp;", "").replace("&amp;", "&")
 
+def get_clean_post_url(url:str) -> str:
+    """
+    Returns a cleaned copy of `url`.
+    
+    (Removes "nbsp" suffixes).
+    """
+    return url.replace("nbsp", "")
+
+def get_clean_post_name(post_name:str):
+    """
+    Returns a cleaned copy of `post_name`.
+
+    (Removes "nbsp" suffixes).
+    """
+    return post_name.replace("nbsp", "")
+    
 
 # ---- 
 
