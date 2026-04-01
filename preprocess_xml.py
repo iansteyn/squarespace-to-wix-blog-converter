@@ -73,7 +73,7 @@ def main() -> None:
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
-        file.write(stringify_soup(xml_soup))
+        file.write(_stringify_soup(xml_soup))
 
     print(f"Modified {len(items)} posts.")
 
@@ -93,22 +93,22 @@ def get_clean_content(content:str) -> CData:
     # Remember: ORDER MATTERS
 
     # (1) REMOVE SQUARESPACE JUNK
-    remove_summary_block(content_soup)
-    remove_extra_wrappers(content_soup)
-    remove_empty_paragraphs(content_soup)
+    _remove_summary_block(content_soup)
+    _remove_extra_wrappers(content_soup)
+    _remove_empty_paragraphs(content_soup)
 
     # (2) FIX FORMATTING
-    fix_divider_lines(content_soup)
-    fix_headings(content_soup) # must happen after remove_empty_paragraphs
-    fix_spacing(content_soup) # must happen after remove_extra_wrappers
+    _fix_divider_lines(content_soup)
+    _fix_headings(content_soup) # must happen after remove_empty_paragraphs
+    _fix_spacing(content_soup) # must happen after remove_extra_wrappers
 
     # (3) HTML CLEAN-UP
-    remove_extra_attributes(content_soup) # must happen after fix_headings
+    _remove_extra_attributes(content_soup) # must happen after fix_headings
 
-    return CData(stringify_soup(content_soup))
+    return CData(_stringify_soup(content_soup))
 
 ## ----
-def remove_summary_block(soup: BeautifulSoup) -> None:
+def _remove_summary_block(soup: BeautifulSoup) -> None:
     """
     Delete Squarespace's large summary block section
 
@@ -119,7 +119,7 @@ def remove_summary_block(soup: BeautifulSoup) -> None:
     for block in blocks_to_remove:
         block.decompose()
 
-def remove_extra_wrappers(soup: BeautifulSoup) -> None:
+def _remove_extra_wrappers(soup: BeautifulSoup) -> None:
     """
     Unwraps all uneccessary divs and spans
     """
@@ -129,7 +129,7 @@ def remove_extra_wrappers(soup: BeautifulSoup) -> None:
     for tag in (extra_divs + extra_spans):
         tag.unwrap()
 
-def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
+def _remove_empty_paragraphs(soup:BeautifulSoup) -> None:
     """
     delete all empty p tags
     """
@@ -139,7 +139,7 @@ def remove_empty_paragraphs(soup:BeautifulSoup) -> None:
         if p.get_text(strip=True) == '':
             p.decompose()
 
-def remove_extra_attributes(
+def _remove_extra_attributes(
         soup: BeautifulSoup,
         attributes: list[str] = ['style', 'class', 'data-rte-preserve-empty', 'data-rte-list']
 ) -> None:
@@ -153,7 +153,7 @@ def remove_extra_attributes(
             if tag.has_attr(attr):
                 del tag[attr]
 
-def fix_spacing(soup: BeautifulSoup) -> None:
+def _fix_spacing(soup: BeautifulSoup) -> None:
     """
     Ensures that there is spacing between paragraphs, titles, and other top-level elements.
 
@@ -164,7 +164,7 @@ def fix_spacing(soup: BeautifulSoup) -> None:
     for tag in top_level_tags:
         tag.insert_after(soup.new_tag('h6'))
 
-def fix_divider_lines(soup: BeautifulSoup) -> None:
+def _fix_divider_lines(soup: BeautifulSoup) -> None:
     """
     Wix doesn't use `<hr>` elements. Replace them with `<p>---</p>` in case the visual division was important.
     """
@@ -176,7 +176,7 @@ def fix_divider_lines(soup: BeautifulSoup) -> None:
         new_tag.string = "———"
         tag.replace_with(new_tag)
 
-def fix_headings(soup: BeautifulSoup) -> None:
+def _fix_headings(soup: BeautifulSoup) -> None:
     """
     Replaces `<p class="sqsrte-large">` with `<h4>` so they register as actual headings
     """
@@ -198,7 +198,7 @@ def get_clean_excerpt(excerpt:str) -> CData:
     for tag in all_tags:
         tag.unwrap()
 
-    return CData(stringify_soup(excerpt_soup))
+    return CData(_stringify_soup(excerpt_soup))
 
 def extract_excerpt_links(excerpt:str) -> list[Tag]:
     '''
@@ -242,7 +242,8 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     for tag in [divider, spacer1, heading, spacer2, ul]:
         content_soup.append(tag)
 
-    return CData(stringify_soup(content_soup))
+    return CData(_stringify_soup(content_soup))
+
 ## ----
 
 def get_clean_title(title:str) -> str:
@@ -268,7 +269,6 @@ def get_clean_post_name(post_name:str):
     (Removes "nbsp" suffixes).
     """
     return post_name.replace("nbsp", "")
-    
 
 # ---- 
 
@@ -276,7 +276,7 @@ def get_clean_post_name(post_name:str):
 
 # ----
 
-def stringify_soup(soup: BeautifulSoup) -> str:
+def _stringify_soup(soup: BeautifulSoup) -> str:
     """
     Returns a string representation of the given `soup`, formatted according to the global script settings.
     """
