@@ -39,6 +39,14 @@ def main() -> None:
     """
 
     # SETUP
+    tag_cleaners = {
+        'content:encoded': get_clean_content,
+        'excerpt:encoded': get_clean_excerpt,
+        'title': get_clean_title,
+        'link': get_clean_link,
+        'wp:post_name': get_clean_post_name
+    }
+
     with open(INPUT_FILE_PATH, 'rb') as file:
         xml_soup = BeautifulSoup(file, 'xml')
 
@@ -47,26 +55,18 @@ def main() -> None:
 
     for item in items:
 
-        # EXTRACT LINKS FROM EXCERPT
+        # extract links from excerpt
         excerpt_tag = item.find('excerpt:encoded')
         extracted_links = extract_excerpt_links(excerpt_tag.string)
 
-        # CLEAN CONTENT, EXCERPT and OTHER TAGS
-        TAG_CLEANERS = {
-            'content:encoded': get_clean_content,
-            'excerpt:encoded': get_clean_excerpt,
-            'title': get_clean_title,
-            'link': get_clean_link,
-            'wp:post_name': get_clean_post_name
-        }
-
-        for tag_name, cleaner in TAG_CLEANERS.items():
+        # clean content, excerpt, and other tags
+        for tag_name, cleaner in tag_cleaners.items():
             tag = item.find(tag_name)
 
             if tag and tag.string:
                 tag.string = cleaner(tag.string)
 
-        # APPEND LINKS to CONTENT
+        # append links to excerpt
         if extracted_links:
             content_tag = item.find('content:encoded')
             content_tag.string = append_excerpt_links(content_tag.string, extracted_links)
