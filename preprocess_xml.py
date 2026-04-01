@@ -49,9 +49,6 @@ def main() -> None:
 
         excerpt_tag = item.find('excerpt:encoded')
         content_tag = item.find('content:encoded')
-        title_tag = item.find('title')
-        link_tag = item.find('link')
-        post_name_tag = item.find('wp:post_name')
 
         # This is unlikely, but just in case:
         # if not excerpt_tag and not content_tag:
@@ -62,9 +59,18 @@ def main() -> None:
         excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
         content_tag.string = get_clean_content(content_tag.string, extracted_links) # TODO: extracted links should be separately appended? yes
 
-        title_tag.string = get_clean_title(title_tag.string)
-        link_tag.string = get_clean_link(link_tag.string)
-        post_name_tag = get_clean_post_name(post_name_tag.string)
+        TAG_CLEANERS = {
+            'title': get_clean_title,
+            'link': get_clean_link,
+            'wp:post_name': get_clean_post_name
+        }
+
+        for tag_name, cleaner in TAG_CLEANERS.items():
+            tag = item.find(tag_name)
+
+            if tag and tag.string:
+                tag.string = cleaner(tag.string)
+
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
