@@ -245,30 +245,6 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     return CData(stringify_soup(content_soup))
 ## ----
 
-# TODO: unescape weird html characters in titles?
-"""
-Problem definition:
-all strings outside of CDATA blocks (i.e., titles, links, post names) that contained HTML escape
-characters seem to have been doubly escaped. For example, `&nbsp;` becomes `&amp;nbsp;`
-
-Actually it's more complicated - some links seem to just have nbsp tacked on to the back?
-"""
-
-# def fix_escape_chars(item:Tag):
-#     # get the tags:
-#     # title - for &amp;amp; and &amp;nbsp
-#     # link - for plain nbsp
-#     # wp:post_name - for plain nbsp
-
-#     title_tag = item.find('title')
-#     link_tag = item.find('link')
-#     post_name_tag = item.find('wp:post_name')
-
-#     title_tag.string = _strip_nbsp(title_tag.string)
-
-
-#     pass
-
 def get_clean_title(title:str) -> str:
     """
     Returns a cleaned copy of `title`.
