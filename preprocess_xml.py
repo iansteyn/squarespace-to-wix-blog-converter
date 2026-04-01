@@ -49,15 +49,18 @@ def main() -> None:
 
         excerpt_tag = item.find('excerpt:encoded')
         content_tag = item.find('content:encoded')
+        title_tag = item.find('title')
 
         # This is unlikely, but just in case:
-        if not excerpt_tag and not content_tag:
-            continue
+        # if not excerpt_tag and not content_tag:
+        #     continue
 
         extracted_links = extract_excerpt_links(excerpt_tag.string)
 
         excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
         content_tag.string = get_clean_content(content_tag.string, extracted_links)
+
+        title_tag.string = get_clean_title(title_tag.string)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
@@ -244,12 +247,27 @@ characters seem to have been doubly escaped. For example, `&nbsp;` becomes `&amp
 Actually it's more complicated - some links seem to just have nbsp tacked on to the back?
 """
 
-def fix_escape_chars():
-    # get the tags:
-    # title - for &amp;amp; and &amp;nbsp
-    # link - for plain nbsp
-    # wp:post - for plain nbsp
-    pass
+# def fix_escape_chars(item:Tag):
+#     # get the tags:
+#     # title - for &amp;amp; and &amp;nbsp
+#     # link - for plain nbsp
+#     # wp:post_name - for plain nbsp
+
+#     title_tag = item.find('title')
+#     link_tag = item.find('link')
+#     post_name_tag = item.find('wp:post_name')
+
+#     title_tag.string = _strip_nbsp(title_tag.string)
+
+
+#     pass
+
+def get_clean_title(title:str) -> str:
+    """
+    Returns a cleaned copy of `title`
+    Fixes double-escaped ampersands and removes unnecessary non-breaking spaces.
+    """
+    return title.replace("&nbsp;", "").replace("&amp;", "&")
 
 
 # ---- 
