@@ -80,7 +80,7 @@ def main() -> None:
 # -----------------------------------------------
 # FUNCTIONS
 
-def get_clean_content(content:str, excerpt_links: list[Tag] = []) -> CData:
+def get_clean_content(content:str) -> CData:
     """
     Removes squarespace junk, fixes formatting, cleans up HTML. 
     
@@ -185,9 +185,41 @@ def fix_headings(soup: BeautifulSoup) -> None:
     for tag in large_text_tags:
         tag.name = 'h4'
 
+## ----
+
+def get_clean_excerpt(excerpt:str) -> CData:
+    '''
+    Basically just unwraps all tags and returns a plaintext (but still CData-encased) version of the excerpt
+    '''
+    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
+
+    all_tags = excerpt_soup.find_all(True)
+
+    for tag in all_tags:
+        tag.unwrap()
+
+    return CData(stringify_soup(excerpt_soup))
+
+def extract_excerpt_links(excerpt:str) -> list[Tag]:
+    '''
+    Returns a list of `<a>` tags (as `Tag` objects) extracted from the given `excerpt` string.
+    '''
+    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
+
+    extracted_tags = []
+    a_tags = excerpt_soup.find_all('a')
+
+    for a in a_tags:
+        extracted_tags.append(copy.copy(a))
+
+    return extracted_tags
+
 def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     """
-    Appends links to `soup` in a nicely formatted manner.
+    Appends links to a copy of `content` in a nicely formatted manner.
+
+    Returns a copy of the given `content` string with `excerpt_links` appended, as a `CData` object
+    ready to be reassigned to the `.string` property of the content tag.
     """
     content_soup = BeautifulSoup(content, 'html.parser')
 
@@ -211,36 +243,6 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
         content_soup.append(tag)
 
     return CData(stringify_soup(content_soup))
-
-## ----
-
-def get_clean_excerpt(excerpt:str) -> CData:
-    '''
-    Basically just unwraps all tags and returns a plaintext (but still CData-encased) version of the excerpt
-    '''
-    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
-
-    all_tags = excerpt_soup.find_all(True)
-
-    for tag in all_tags:
-        tag.unwrap()
-
-    return CData(stringify_soup(excerpt_soup))
-
-def extract_excerpt_links(excerpt:str) -> list[Tag]:
-    '''
-    Returns a list of `<a>` tags (as `Tag` objects) extracted from the given `excerpt`
-    '''
-    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
-
-    extracted_tags = []
-    a_tags = excerpt_soup.find_all('a')
-
-    for a in a_tags:
-        extracted_tags.append(copy.copy(a))
-
-    return extracted_tags
-
 ## ----
 
 # TODO: unescape weird html characters in titles?
