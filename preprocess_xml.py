@@ -63,7 +63,7 @@ def main() -> None:
         content_tag.string = get_clean_content(content_tag.string, extracted_links) # TODO: extracted links should be separately appended? yes
 
         title_tag.string = get_clean_title(title_tag.string)
-        link_tag.string = get_clean_post_url(link_tag.string)
+        link_tag.string = get_clean_link(link_tag.string)
         post_name_tag = get_clean_post_name(post_name_tag.string)
 
     # FINISH
@@ -274,13 +274,13 @@ def get_clean_title(title:str) -> str:
     """
     return title.replace("&nbsp;", "").replace("&amp;", "&")
 
-def get_clean_post_url(url:str) -> str:
+def get_clean_link(link:str) -> str:
     """
-    Returns a cleaned copy of `url`.
+    Returns a cleaned copy of `link`.
     
     (Removes "nbsp" suffixes).
     """
-    return url.replace("nbsp", "")
+    return link.replace("nbsp", "")
 
 def get_clean_post_name(post_name:str):
     """
