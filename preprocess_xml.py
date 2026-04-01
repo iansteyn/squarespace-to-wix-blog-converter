@@ -236,6 +236,25 @@ def extract_excerpt_links(excerpt:str) -> list[Tag]:
 ## ----
 
 # TODO: unescape weird html characters in titles?
+"""
+Problem definition:
+all strings outside of CDATA blocks (i.e., titles, links, post names) that contained HTML escape
+characters seem to have been doubly escaped. For example, `&nbsp;` becomes `&amp;nbsp;`
+
+Actually it's more complicated - some links seem to just have nbsp tacked on to the back?
+"""
+
+def fix_escape_chars():
+    # get the tags:
+    # title - for &amp;amp; and &amp;nbsp
+    # link - for plain nbsp
+    # wp:post - for plain nbsp
+    pass
+
+
+# ---- 
+
+# possible TODO: normalize category names
 
 # ----
 
