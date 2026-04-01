@@ -47,19 +47,14 @@ def main() -> None:
 
     for item in items:
 
+        # EXTRACT LINKS FROM EXCERPT
         excerpt_tag = item.find('excerpt:encoded')
-        content_tag = item.find('content:encoded')
-
-        # This is unlikely, but just in case:
-        # if not excerpt_tag and not content_tag:
-        #     continue
-
         extracted_links = extract_excerpt_links(excerpt_tag.string)
 
-        excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
-        content_tag.string = get_clean_content(content_tag.string, extracted_links) # TODO: extracted links should be separately appended? yes
-
+        # CLEAN CONTENT, EXCERPT and OTHER TAGS
         TAG_CLEANERS = {
+            'content:encoded': get_clean_content,
+            'excerpt:encoded': get_clean_excerpt,
             'title': get_clean_title,
             'link': get_clean_link,
             'wp:post_name': get_clean_post_name
@@ -71,6 +66,10 @@ def main() -> None:
             if tag and tag.string:
                 tag.string = cleaner(tag.string)
 
+        # APPEND LINKS to CONTENT
+        if extracted_links:
+            content_tag = item.find('content:encoded')
+            content_tag.string = append_excerpt_links(content_tag.string, extracted_links)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
@@ -83,7 +82,7 @@ def main() -> None:
 
 def get_clean_content(content:str, excerpt_links: list[Tag] = []) -> CData:
     """
-    Removes squarespace junk, fixes formatting, cleans up HTMl, and (optionally) appends `excerpt_links`. 
+    Removes squarespace junk, fixes formatting, cleans up HTML. 
     
     Returns a version of the given `content` string as a cleaned `CData` object,
     ready to be reassigned to the `.string` property of the content tag.
@@ -105,10 +104,6 @@ def get_clean_content(content:str, excerpt_links: list[Tag] = []) -> CData:
 
     # (3) HTML CLEAN-UP
     remove_extra_attributes(content_soup) # must happen after fix_headings
-
-    # (4) APPEND EXCERPT LINKS
-    # (this is to somewhat compensate for the loss of SquareSpace's link buttons)
-    append_links(content_soup, excerpt_links) # must happen after all
 
     return CData(stringify_soup(content_soup))
 
@@ -190,32 +185,32 @@ def fix_headings(soup: BeautifulSoup) -> None:
     for tag in large_text_tags:
         tag.name = 'h4'
 
-def append_links(soup: BeautifulSoup, link_list: list[Tag]) -> None:
+def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     """
     Appends links to `soup` in a nicely formatted manner.
     """
+    content_soup = BeautifulSoup(content, 'html.parser')
 
-    if not link_list:
-        return
-
-    divider = soup.new_tag('p')
+    divider = content_soup.new_tag('p')
     divider.string = '———'
 
-    spacer1 = soup.new_tag('h6')
-    spacer2 = soup.new_tag('h6')
+    spacer1 = content_soup.new_tag('h6')
+    spacer2 = content_soup.new_tag('h6')
 
-    heading = soup.new_tag('h4')
+    heading = content_soup.new_tag('h4')
     heading.string = 'Links'
 
-    ul = soup.new_tag('ul')
+    ul = content_soup.new_tag('ul')
 
-    for a_tag in link_list:
-        li = soup.new_tag('li')
+    for a_tag in excerpt_links:
+        li = content_soup.new_tag('li')
         li.append(a_tag)
         ul.append(li)
 
     for tag in [divider, spacer1, heading, spacer2, ul]:
-        soup.append(tag)
+        content_soup.append(tag)
+
+    return CData(stringify_soup(content_soup))
 
 ## ----
 
