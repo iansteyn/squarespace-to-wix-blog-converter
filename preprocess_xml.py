@@ -44,14 +44,6 @@ def main() -> None:
     """
 
     # SETUP
-    tag_cleaners = {
-        'content:encoded': get_clean_content,
-        'excerpt:encoded': get_clean_excerpt,
-        'title': get_clean_title,
-        'link': get_clean_link,
-        'wp:post_name': get_clean_post_name
-    }
-
     with open(INPUT_FILE_PATH, 'rb') as file:
         xml_soup = BeautifulSoup(file, 'xml')
 
@@ -68,37 +60,43 @@ def main() -> None:
             num_posts -= 1
             continue
 
-        # (1) extract links from excerpt
-            # (must be done before cleaning because excerpt will be completely turned to plaintext)
+        # (1) Find Tags
+        content_tag = item.find('content:encoded')
         excerpt_tag = item.find('excerpt:encoded')
+        title_tag = item.find('title')
+        link_tag = item.find('link')
+        post_name_tag = item.find('wp:post_name')
+        category_tags = item.find_all('category')
+
+        # (2) extract links from excerpt
+            # (must be done before cleaning because excerpt will be completely turned to plaintext)
         extracted_links = extract_links(excerpt_tag.string)
 
-        # (2) CLEAN content, excerpt, and other tags
-        for tag_name, cleaner in tag_cleaners.items():
-            tag = item.find(tag_name)
+        # (3) CLEAN tags
+        content_tag.string = get_clean_content(content_tag.string)
+        excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
+        title_tag.string = get_clean_title(title_tag.string)
+        link_tag.string = get_clean_link(link_tag.string)
+        post_name_tag.string = get_clean_post_name(post_name_tag.string)
 
-            if tag and tag.string:
-                tag.string = cleaner(tag.string)
+        for category_tag in category_tags:
+            if category_tag and category_tag.string:
+                category_tag.string = get_clean_category(category_tag.string)
 
-        # (3) extract links from content
+        # (4) extract links from content
             # (must be done after cleaning to avoid including a bunch of squarespace junk links)
-        content_tag = item.find('content:encoded')
         extracted_links += extract_links(content_tag.string)
 
-        # (4) append all extracted links to content
+        # (5) append all extracted links to content
         if extracted_links:
             content_tag.string = append_links(content_tag.string, extracted_links)
-
-        # (5) Normalize categories
-        category_tags = item.find_all('category')
-        for tag in category_tags:
-            tag.string = get_clean_category(tag.string)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
         file.write(_stringify_soup(xml_soup))
 
     print(f"Modified {num_posts} posts.")
+
 
 # -----------------------------------------------
 # FUNCTIONS
