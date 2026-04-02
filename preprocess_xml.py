@@ -81,7 +81,7 @@ def main() -> None:
             num_posts -= 1
             continue
 
-        if not excerpt or excerpt.string:
+        if not excerpt or not excerpt.string:
             excerpt = xml_soup.new_tag('excerpt:encoded')
             excerpt.string = ""
             item.append(excerpt)
@@ -312,17 +312,16 @@ def extract_links(html:str, ignore_img_links:bool = True) -> list[dict[str, str]
     soup = BeautifulSoup(html, 'html.parser')
 
     extracted_links = []
-    a_tags = soup.find_all('a')
+    a_tags = soup.select('a[href]')
 
     for a in a_tags:
         if ignore_img_links and a.find('img'):
             continue
 
-        if a['href']:
-            extracted_links.append({
-                'text': a.string,
-                'url': a['href']
-            })
+        extracted_links.append({
+            'text': a.string,
+            'url': a['href']
+        })
 
     return extracted_links
 
