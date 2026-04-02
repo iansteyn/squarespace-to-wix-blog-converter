@@ -89,6 +89,11 @@ def main() -> None:
         if extracted_links:
             content_tag.string = append_links(content_tag.string, extracted_links)
 
+        # (5) Normalize categories
+        category_tags = item.find_all('category')
+        for tag in category_tags:
+            tag.string = get_clean_category(tag.string)
+
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
         file.write(_stringify_soup(xml_soup))
@@ -164,6 +169,24 @@ def get_clean_post_name(post_name:str):
     (Removes "nbsp" suffixes).
     """
     return post_name.replace("nbsp", "")
+
+def get_clean_category(category:str):
+    """
+    Normalizes
+    """
+    # TODO step 1 - normalize the names
+    category = category.title().strip()
+
+    # TODO step 2 - map any categories that need to be merged into one
+    CATEGORY_MAP = {
+        'Planetary Health': 'Climate Action',
+        'Event': 'Events'
+    }
+    for key, value in CATEGORY_MAP.items():
+        if category == key:
+            category = value
+
+    return CData(category)
 
 # ----
 # HELPERS FOR CLEANERS
