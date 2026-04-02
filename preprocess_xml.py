@@ -61,35 +61,39 @@ def main() -> None:
             continue
 
         # (1) Find Tags
-        content_tag = item.find('content:encoded')
-        excerpt_tag = item.find('excerpt:encoded')
-        title_tag = item.find('title')
-        link_tag = item.find('link')
-        post_name_tag = item.find('wp:post_name')
-        category_tags = item.find_all('category')
+        content = item.find('content:encoded')
+        excerpt = item.find('excerpt:encoded')
+        title = item.find('title')
+        link = item.find('link')
+        post_name = item.find('wp:post_name')
+        categories = item.find_all('category')
 
-        # (2) extract links from excerpt
-            # (must be done before cleaning because excerpt will be completely turned to plaintext)
-        extracted_links = extract_links(excerpt_tag.string)
+        # (2) extract links from excerpt BEFORE cleaning
+        extracted_links = extract_links(excerpt.string)
 
         # (3) CLEAN tags
-        content_tag.string = get_clean_content(content_tag.string)
-        excerpt_tag.string = get_clean_excerpt(excerpt_tag.string)
-        title_tag.string = get_clean_title(title_tag.string)
-        link_tag.string = get_clean_link(link_tag.string)
-        post_name_tag.string = get_clean_post_name(post_name_tag.string)
+        single_tags_to_clean = [
+            (content, get_clean_content),
+            (excerpt, get_clean_excerpt),
+            (title, get_clean_title),
+            (link, get_clean_link),
+            (post_name, get_clean_post_name)
+        ]
 
-        for category_tag in category_tags:
+        for tag, cleaner in single_tags_to_clean:
+            if tag and tag.string:
+                tag.string = cleaner(tag.string)
+
+        for category_tag in categories:
             if category_tag and category_tag.string:
                 category_tag.string = get_clean_category(category_tag.string)
 
-        # (4) extract links from content
-            # (must be done after cleaning to avoid including a bunch of squarespace junk links)
-        extracted_links += extract_links(content_tag.string)
+        # (4) extract links from content AFTER cleaning
+        extracted_links += extract_links(content.string)
 
         # (5) append all extracted links to content
         if extracted_links:
-            content_tag.string = append_links(content_tag.string, extracted_links)
+            content.string = append_links(content.string, extracted_links)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
