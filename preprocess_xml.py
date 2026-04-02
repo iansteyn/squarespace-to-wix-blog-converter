@@ -28,7 +28,7 @@ test_input_path = "short-copy-for-testing.xml"
 
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
-PRETTIFY = True
+PRETTIFY = False
 
 # ---------------------------------------------------
 # SCRIPT
@@ -50,14 +50,15 @@ def main() -> None:
     with open(INPUT_FILE_PATH, 'rb') as file:
         xml_soup = BeautifulSoup(file, 'xml')
 
-    # LOOP THROUGH ITEMS
+    # LOOP THROUGH RSS FEED ITEMS
     items = xml_soup.find_all('item')
 
     for item in items:
 
         # extract links from excerpt
         excerpt_tag = item.find('excerpt:encoded')
-        extracted_links = extract_excerpt_links(excerpt_tag.string)
+        extracted_links = extract_links(excerpt_tag.string)
+        print(extracted_links)
 
         # clean content, excerpt, and other tags
         for tag_name, cleaner in tag_cleaners.items():
@@ -67,9 +68,9 @@ def main() -> None:
                 tag.string = cleaner(tag.string)
 
         # append links to excerpt
-        if extracted_links:
-            content_tag = item.find('content:encoded')
-            content_tag.string = append_excerpt_links(content_tag.string, extracted_links)
+        # if extracted_links:
+        #     content_tag = item.find('content:encoded')
+        #     content_tag.string = append_excerpt_links(content_tag.string, extracted_links)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
@@ -227,22 +228,42 @@ def _fix_headings(soup: BeautifulSoup) -> None:
     for tag in large_text_tags:
         tag.name = 'h4'
 
+# TODO: fix links
+
 # ----
 # EXCERPT LINK FUNCTIONS
 
-def extract_excerpt_links(excerpt:str) -> list[Tag]:
+def extract_links(html:str) -> list[dict[str, str]]:
     '''
-    Returns a list of `<a>` tags (as `Tag` objects) extracted from the given `excerpt` string.
+    Extracts all links from the given `html` string.
+    
+    Returns a list in the format:
+    ```python
+    [
+        {
+            'text': 'linktext',
+            'url': 'https://somelink.com'
+        },
+        {
+            'text': 'sometext',
+            'url': 'mailto:example@example.com'
+        }
+    ]
+    ```
     '''
-    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
+    soup = BeautifulSoup(html, 'html.parser')
 
-    extracted_tags = []
-    a_tags = excerpt_soup.find_all('a')
+    extracted_links = []
+    a_tags = soup.find_all('a')
 
     for a in a_tags:
-        extracted_tags.append(copy.copy(a))
+        if a['href']:
+            extracted_links.append({
+                'text': a.string,
+                'url': a['href']
+            })
 
-    return extracted_tags
+    return extracted_links
 
 def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     """
