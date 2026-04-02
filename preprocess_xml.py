@@ -259,7 +259,6 @@ def _fix_divider_lines(soup: BeautifulSoup) -> None:
     """
     Wix doesn't use `<hr>` elements. Replace them with `<p>---</p>` in case the visual division was important.
     """
-    # TODO: may require more space - see <br> todo above
     hr_tags = soup.find_all("hr")
 
     for tag in hr_tags:
