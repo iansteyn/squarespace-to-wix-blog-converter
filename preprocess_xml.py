@@ -21,6 +21,8 @@ Script configuration constants. Edit these as you wish.
 - `MESSAGE_FOR_EXTRACTED_LINKS: str`
     - A message explaining the extracted links attached at the bottom of each post.
     - Tailor to your audience.
+- `CATEGORY_NAME_MAP: dict[str, str]`
+    - Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
 - `PRETTIFY: bool`
     - Only set to `True` when testing (makes the xml output easier to read).
     - This MUST be set to `False` when generating the final document for Wix. 
@@ -32,7 +34,13 @@ test_input_path = "short-copy-for-testing.xml"
 
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
-MESSAGE_FOR_EXTRACTED_LINKS = "This article was migrated from our old archive. The following links were preserved from the original publication:"
+MESSAGE_FOR_EXTRACTED_LINKS = (
+    "This article was migrated from our old archive. The following links were preserved from the original publication:"
+)
+CATEGORY_NAME_MAP = {
+    'Planetary Health': 'Climate Action',
+    'Event': 'Events'
+}
 PRETTIFY = False
 
 # ---------------------------------------------------
@@ -86,7 +94,7 @@ def main() -> None:
 
         for category_tag in categories:
             if category_tag and category_tag.string:
-                category_tag.string = get_clean_category(category_tag.string)
+                category_tag.string = get_clean_category(category_tag.string, CATEGORY_NAME_MAP)
 
         # (4) extract links from content AFTER cleaning
         extracted_links += extract_links(content.string)
@@ -164,7 +172,7 @@ def get_clean_link(link:str) -> str:
     """
     return link.replace("nbsp", "")
 
-def get_clean_post_name(post_name:str):
+def get_clean_post_name(post_name:str) -> str:
     """
     Returns a cleaned copy of `post_name`.
 
@@ -172,23 +180,21 @@ def get_clean_post_name(post_name:str):
     """
     return post_name.replace("nbsp", "")
 
-def get_clean_category(category:str):
+def get_clean_category(category:str, category_name_map:dict[str, str]) -> CData:
     """
-    Normalizes
+    Returns a cleaned copy of `category`.
+
+    Normalizes white space and capitalization, and maps some categories to new names.
     """
-    # TODO step 1 - normalize the names
-    category = category.title().strip()
+    # (1) normalize white space and capitalization
+    clean_category = category.title().strip()
 
-    # TODO step 2 - map any categories that need to be merged into one
-    CATEGORY_MAP = {
-        'Planetary Health': 'Climate Action',
-        'Event': 'Events'
-    }
-    for key, value in CATEGORY_MAP.items():
-        if category == key:
-            category = value
+    # (2) map any categories that need to be merged into one
+    for old_name, new_name in category_name_map.items():
+        if clean_category == old_name:
+            clean_category = new_name
 
-    return CData(category)
+    return CData(clean_category)
 
 # ----
 # HELPERS FOR CLEANERS
@@ -269,8 +275,6 @@ def _fix_headings(soup: BeautifulSoup) -> None:
 
     for tag in large_text_tags:
         tag.name = 'h4'
-
-# TODO: fix links
 
 # ----
 # LINK EXTRACTION/INSERTION FUNCTIONS
@@ -374,10 +378,6 @@ def _format_link(link: dict[str, str]) -> str:
     url = link['url'] or 'Missing URL'
 
     return f"&#91;{text}&#93;({url})" # i.e. `[text](url)`
-
-# ----
-# possible TODO: normalize category names
-
 
 # ----
 # GENERAL HELPERS
