@@ -141,13 +141,13 @@ def get_clean_excerpt(excerpt:str) -> CData:
 
     return CData(_stringify_soup(excerpt_soup))
 
-def get_clean_title(title:str) -> str:
+def get_clean_title(title:str) -> CData:
     """
     Returns a cleaned copy of `title`.
 
     (Fixes double-escaped ampersands and removes unnecessary non-breaking spaces).
     """
-    return title.replace("&nbsp;", "").replace("&amp;", "&")
+    return CData(title.replace("&nbsp;", "").replace("&amp;", "&"))
 
 def get_clean_link(link:str) -> str:
     """
