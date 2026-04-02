@@ -58,7 +58,6 @@ def main() -> None:
         # extract links from excerpt
         excerpt_tag = item.find('excerpt:encoded')
         extracted_links = extract_links(excerpt_tag.string)
-        print(extracted_links)
 
         # clean content, excerpt, and other tags
         for tag_name, cleaner in tag_cleaners.items():
@@ -68,9 +67,9 @@ def main() -> None:
                 tag.string = cleaner(tag.string)
 
         # append links to excerpt
-        # if extracted_links:
-        #     content_tag = item.find('content:encoded')
-        #     content_tag.string = append_excerpt_links(content_tag.string, extracted_links)
+        if extracted_links:
+            content_tag = item.find('content:encoded')
+            content_tag.string = append_links(content_tag.string, extracted_links)
 
     # FINISH
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
@@ -231,7 +230,7 @@ def _fix_headings(soup: BeautifulSoup) -> None:
 # TODO: fix links
 
 # ----
-# EXCERPT LINK FUNCTIONS
+# LINK EXTRACTION/INSERTION FUNCTIONS
 
 def extract_links(html:str) -> list[dict[str, str]]:
     '''
@@ -265,10 +264,13 @@ def extract_links(html:str) -> list[dict[str, str]]:
 
     return extracted_links
 
-def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
+def append_links(content: str, links: list[dict[str, str]]) -> CData:
     """
-    Appends links to a copy of `content` in a nicely formatted manner.
+    Appends the given `links` to a copy of `content` in a plaintext, markdown-like format.
 
+    Wix sanitizes most links on import (e.g. `<a>linktext</a>` --> `linktext`).
+    This function is a workaround for including link data that cannot otherwise be included.
+    
     Returns a copy of the given `content` string with `excerpt_links` appended, as a `CData` object
     ready to be reassigned to the `.string` property of the content tag. The format of the appended links is:
     ```
@@ -277,13 +279,14 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     <h4>Links</h4>
     <h6></h6>
     <ul>
-      <li><a>...</a></li>
+      <li>[linktext](linkurl)</li>
       ...
     </ul>
     ```
     """
     content_soup = BeautifulSoup(content, 'html.parser')
 
+    # create stuff before links
     divider = content_soup.new_tag('p')
     divider.string = '———'
 
@@ -295,13 +298,18 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
 
     ul = content_soup.new_tag('ul')
 
-    for a_tag in excerpt_links:
-        li = content_soup.new_tag('li')
-        li.append(a_tag)
-        ul.append(li)
-
     for tag in [divider, spacer1, heading, spacer2, ul]:
         content_soup.append(tag)
+
+    # insert links
+    for link in links:
+        text = link['text']
+        url = link['url']
+
+        li = content_soup.new_tag('li')
+        ul.append(li)
+
+        li.string = f"&#91;{text}&#93;({url})" # ie [linktext](linkurl). Wix ignores and deletes `[` `]` unless they are escaped.
 
     return CData(_stringify_soup(content_soup))
 
@@ -320,7 +328,8 @@ def _stringify_soup(soup: BeautifulSoup) -> str:
     if PRETTIFY:
         return soup.prettify()
     else:
-        return str(soup)
+        # this is used instead of str(soup) to avoid unnecessarily double escaping html entity characters
+        return soup.decode(formatter=None)
 
 # ------------------------------------------------------------
 # SCRIPT EXECUTION
