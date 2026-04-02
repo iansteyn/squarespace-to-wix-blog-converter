@@ -32,7 +32,7 @@ Script configuration constants. Edit these as you wish.
 real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
 test_input_path = "short-copy-for-testing.xml"
 
-INPUT_FILE_PATH = "./input_xml/" + test_input_path
+INPUT_FILE_PATH = "./input_xml/" + real_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
 MESSAGE_FOR_EXTRACTED_LINKS = (
     "This article was migrated from our old archive. The following links were preserved from the original publication:"
@@ -76,7 +76,18 @@ def main() -> None:
         post_name = item.find('wp:post_name')
         categories = item.find_all('category')
 
+        if not title.string or "(Copy)" in title.string:
+            item.decompose()
+            num_posts -= 1
+            continue
+
+        if not excerpt or excerpt.string:
+            excerpt = xml_soup.new_tag('excerpt:encoded')
+            excerpt.string = ""
+            item.append(excerpt)
+
         # (2) extract links from excerpt BEFORE cleaning
+        print(title.string)
         extracted_links = extract_links(excerpt.string)
 
         # (3) CLEAN tags
