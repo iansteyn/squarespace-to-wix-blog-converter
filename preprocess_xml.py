@@ -29,7 +29,7 @@ Script configuration constants. Edit these as you wish.
 
 """
 
-real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
+real_input_path = "Squarespace-Wordpress-Export-04-02-2026.xml"
 test_input_path = "short-copy-for-testing.xml"
 
 INPUT_FILE_PATH = "./input_xml/" + real_input_path
@@ -41,6 +41,7 @@ CATEGORY_NAME_MAP = {
     'Planetary Health': 'Climate Action',
     'Event': 'Events'
 }
+NON_POST_URLS = ['/events']
 PRETTIFY = False
 
 # ---------------------------------------------------
@@ -76,7 +77,7 @@ def main() -> None:
         post_name = item.find('wp:post_name')
         categories = item.find_all('category')
 
-        if not title.string or "(Copy)" in title.string:
+        if not title.string or "(Copy)" in title.string or link.string in NON_POST_URLS:
             item.decompose()
             num_posts -= 1
             continue
