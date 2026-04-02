@@ -309,17 +309,23 @@ def append_links(content: str, links: list[dict[str, str]]) -> CData:
 
     # insert links
     for link in links:
-        text = link['text']
-        url = link['url']
-
         li = content_soup.new_tag('li')
+        li.string = _format_link(link) 
         ul.append(li)
-
-        li.string = f"&#91;{text}&#93;({url})" # ie [linktext](linkurl). Wix ignores and deletes `[` `]` unless they are escaped.
 
     return CData(_stringify_soup(content_soup))
 
 # ----
+def _format_link(link: dict[str, str]) -> str:
+    """
+    Formats a given `link` dictionary with keys `text` and `url` as markdown-like plaintext.
+
+    Square brackets are encoded as escaped html entities because Wix ignores and deletes `[` `]` unless they are escaped.
+    """
+    text = link['text'] or 'Unnamed Link'
+    url = link['url'] or 'Missing URL'
+
+    return f"&#91;{text}&#93;({url})" # i.e. `[text](url)`
 
 # possible TODO: normalize category names
 
