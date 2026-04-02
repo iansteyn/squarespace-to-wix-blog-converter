@@ -18,9 +18,13 @@ Script configuration constants. Edit these as you wish.
     - Location of the input file, i.e. the XML file you exported from SquareSpace.
 - `OUTPUT_FILE_PATH: str`
     - Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
+- `MESSAGE_FOR_EXTRACTED_LINKS: str`
+    - A message explaining the extracted links attached at the bottom of each post.
+    - Tailor to your audience.
 - `PRETTIFY: bool`
     - Only set to `True` when testing (makes the xml output easier to read).
     - This MUST be set to `False` when generating the final document for Wix. 
+
 """
 
 real_input_path = "Squarespace-Wordpress-Export-03-18-2026.xml"
@@ -28,7 +32,8 @@ test_input_path = "short-copy-for-testing.xml"
 
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
-PRETTIFY = True
+MESSAGE_FOR_EXTRACTED_LINKS = "This article was migrated from our old archive. The following links were preserved from the original publication:"
+PRETTIFY = False
 
 # ---------------------------------------------------
 # SCRIPT
@@ -39,7 +44,6 @@ def main() -> None:
     """
 
     # SETUP
-
     tag_cleaners = {
         'content:encoded': get_clean_content,
         'excerpt:encoded': get_clean_excerpt,
@@ -53,8 +57,16 @@ def main() -> None:
 
     # LOOP THROUGH RSS FEED ITEMS
     items = xml_soup.find_all('item')
+    num_posts = len(items)
 
     for item in items:
+
+        # (0) Delete the item if it is just an attachment
+            # (these don't get transferred to Wix, so no need to operate on them)
+        if item.find('wp:attachment_url'):
+            item.decompose()
+            num_posts -= 1
+            continue
 
         # (1) extract links from excerpt
             # (must be done before cleaning because excerpt will be completely turned to plaintext)
@@ -65,8 +77,8 @@ def main() -> None:
         for tag_name, cleaner in tag_cleaners.items():
             tag = item.find(tag_name)
 
-            if tag and tag.string:
-                tag.string = cleaner(tag.string)
+            # if tag and tag.string:
+            tag.string = cleaner(tag.string)
 
         # (3) extract links from content
             # (must be done after cleaning to avoid including a bunch of squarespace junk links)
@@ -81,7 +93,7 @@ def main() -> None:
     with open(OUTPUT_FILE_PATH, 'w', encoding='utf-8') as file:
         file.write(_stringify_soup(xml_soup))
 
-    print(f"Modified {len(items)} posts.")
+    print(f"Modified {num_posts} posts.")
 
 # -----------------------------------------------
 # FUNCTIONS
@@ -289,6 +301,7 @@ def append_links(content: str, links: list[dict[str, str]]) -> CData:
     <p>———</p>
     <h6></h6>
     <h4>Links</h4>
+    <p>Message about the links</p>
     <h6></h6>
     <ul>
       <li>[linktext](linkurl)</li>
@@ -308,9 +321,12 @@ def append_links(content: str, links: list[dict[str, str]]) -> CData:
     heading = content_soup.new_tag('h4')
     heading.string = 'Links'
 
+    message = content_soup.new_tag('p')
+    message.string = MESSAGE_FOR_EXTRACTED_LINKS
+
     ul = content_soup.new_tag('ul')
 
-    for tag in [divider, spacer1, heading, spacer2, ul]:
+    for tag in [divider, spacer1, heading, message, spacer2, ul]:
         content_soup.append(tag)
 
     # insert links
