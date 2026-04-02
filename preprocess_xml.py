@@ -28,7 +28,7 @@ test_input_path = "short-copy-for-testing.xml"
 
 INPUT_FILE_PATH = "./input_xml/" + test_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
-PRETTIFY = False
+PRETTIFY = True
 
 # ---------------------------------------------------
 # SCRIPT
@@ -39,6 +39,7 @@ def main() -> None:
     """
 
     # SETUP
+
     tag_cleaners = {
         'content:encoded': get_clean_content,
         'excerpt:encoded': get_clean_excerpt,
@@ -55,20 +56,25 @@ def main() -> None:
 
     for item in items:
 
-        # extract links from excerpt
+        # (1) extract links from excerpt
+            # (must be done before cleaning because excerpt will be completely turned to plaintext)
         excerpt_tag = item.find('excerpt:encoded')
         extracted_links = extract_links(excerpt_tag.string)
 
-        # clean content, excerpt, and other tags
+        # (2) CLEAN content, excerpt, and other tags
         for tag_name, cleaner in tag_cleaners.items():
             tag = item.find(tag_name)
 
             if tag and tag.string:
                 tag.string = cleaner(tag.string)
 
-        # append links to excerpt
+        # (3) extract links from content
+            # (must be done after cleaning to avoid including a bunch of squarespace junk links)
+        content_tag = item.find('content:encoded')
+        extracted_links += extract_links(content_tag.string)
+
+        # (4) append all extracted links to content
         if extracted_links:
-            content_tag = item.find('content:encoded')
             content_tag.string = append_links(content_tag.string, extracted_links)
 
     # FINISH
@@ -325,10 +331,10 @@ def _stringify_soup(soup: BeautifulSoup) -> str:
     """
     Returns a string representation of the given `soup`, formatted according to the global script settings.
     """
+    # formatter=None is used to avoid unnecessarily double escaping html entity characters
     if PRETTIFY:
-        return soup.prettify()
+        return soup.prettify(formatter=None)
     else:
-        # this is used instead of str(soup) to avoid unnecessarily double escaping html entity characters
         return soup.decode(formatter=None)
 
 # ------------------------------------------------------------
