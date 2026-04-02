@@ -238,9 +238,12 @@ def _fix_headings(soup: BeautifulSoup) -> None:
 # ----
 # LINK EXTRACTION/INSERTION FUNCTIONS
 
-def extract_links(html:str) -> list[dict[str, str]]:
+def extract_links(html:str, ignore_img_links:bool = True) -> list[dict[str, str]]:
     '''
     Extracts all links from the given `html` string.
+    
+    By default, ignores image links (`<a><img></a>`) (since these are actually transferred to Wix), but
+    you can change this can by setting the parameter `ignore_img_links=False`.
     
     Returns a list in the format:
     ```python
@@ -262,6 +265,9 @@ def extract_links(html:str) -> list[dict[str, str]]:
     a_tags = soup.find_all('a')
 
     for a in a_tags:
+        if ignore_img_links and a.find('img'):
+            continue
+
         if a['href']:
             extracted_links.append({
                 'text': a.string,
@@ -316,6 +322,7 @@ def append_links(content: str, links: list[dict[str, str]]) -> CData:
     return CData(_stringify_soup(content_soup))
 
 # ----
+# HELPERS FOR LINK FUNCTIONS
 def _format_link(link: dict[str, str]) -> str:
     """
     Formats a given `link` dictionary with keys `text` and `url` as markdown-like plaintext.
@@ -327,6 +334,7 @@ def _format_link(link: dict[str, str]) -> str:
 
     return f"&#91;{text}&#93;({url})" # i.e. `[text](url)`
 
+# ----
 # possible TODO: normalize category names
 
 
