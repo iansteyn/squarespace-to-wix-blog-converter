@@ -80,6 +80,9 @@ def main() -> None:
 # -----------------------------------------------
 # FUNCTIONS
 
+# ----
+# CLEANER FUNCTIONS
+
 def get_clean_content(content:str) -> CData:
     """
     Removes squarespace junk, fixes formatting, cleans up HTML. 
@@ -107,7 +110,46 @@ def get_clean_content(content:str) -> CData:
 
     return CData(_stringify_soup(content_soup))
 
-## ----
+def get_clean_excerpt(excerpt:str) -> CData:
+    '''
+    Basically just unwraps all tags and returns a plaintext (but still CData-encased) version of the excerpt
+    '''
+    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
+
+    all_tags = excerpt_soup.find_all(True)
+
+    for tag in all_tags:
+        tag.unwrap()
+
+    return CData(_stringify_soup(excerpt_soup))
+
+def get_clean_title(title:str) -> str:
+    """
+    Returns a cleaned copy of `title`.
+
+    (Fixes double-escaped ampersands and removes unnecessary non-breaking spaces).
+    """
+    return title.replace("&nbsp;", "").replace("&amp;", "&")
+
+def get_clean_link(link:str) -> str:
+    """
+    Returns a cleaned copy of `link`.
+    
+    (Removes "nbsp" suffixes).
+    """
+    return link.replace("nbsp", "")
+
+def get_clean_post_name(post_name:str):
+    """
+    Returns a cleaned copy of `post_name`.
+
+    (Removes "nbsp" suffixes).
+    """
+    return post_name.replace("nbsp", "")
+
+# ----
+# HELPERS FOR CLEANERS
+
 def _remove_summary_block(soup: BeautifulSoup) -> None:
     """
     Delete Squarespace's large summary block section
@@ -185,20 +227,8 @@ def _fix_headings(soup: BeautifulSoup) -> None:
     for tag in large_text_tags:
         tag.name = 'h4'
 
-## ----
-
-def get_clean_excerpt(excerpt:str) -> CData:
-    '''
-    Basically just unwraps all tags and returns a plaintext (but still CData-encased) version of the excerpt
-    '''
-    excerpt_soup = BeautifulSoup(excerpt, 'html.parser')
-
-    all_tags = excerpt_soup.find_all(True)
-
-    for tag in all_tags:
-        tag.unwrap()
-
-    return CData(_stringify_soup(excerpt_soup))
+# ----
+# EXCERPT LINK FUNCTIONS
 
 def extract_excerpt_links(excerpt:str) -> list[Tag]:
     '''
@@ -219,7 +249,17 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
     Appends links to a copy of `content` in a nicely formatted manner.
 
     Returns a copy of the given `content` string with `excerpt_links` appended, as a `CData` object
-    ready to be reassigned to the `.string` property of the content tag.
+    ready to be reassigned to the `.string` property of the content tag. The format of the appended links is:
+    ```
+    <p>———</p>
+    <h6></h6>
+    <h4>Links</h4>
+    <h6></h6>
+    <ul>
+      <li><a>...</a></li>
+      ...
+    </ul>
+    ```
     """
     content_soup = BeautifulSoup(content, 'html.parser')
 
@@ -244,37 +284,13 @@ def append_excerpt_links(content: str, excerpt_links: list[Tag]) -> CData:
 
     return CData(_stringify_soup(content_soup))
 
-## ----
-
-def get_clean_title(title:str) -> str:
-    """
-    Returns a cleaned copy of `title`.
-
-    (Fixes double-escaped ampersands and removes unnecessary non-breaking spaces).
-    """
-    return title.replace("&nbsp;", "").replace("&amp;", "&")
-
-def get_clean_link(link:str) -> str:
-    """
-    Returns a cleaned copy of `link`.
-    
-    (Removes "nbsp" suffixes).
-    """
-    return link.replace("nbsp", "")
-
-def get_clean_post_name(post_name:str):
-    """
-    Returns a cleaned copy of `post_name`.
-
-    (Removes "nbsp" suffixes).
-    """
-    return post_name.replace("nbsp", "")
-
-# ---- 
+# ----
 
 # possible TODO: normalize category names
 
+
 # ----
+# GENERAL HELPERS
 
 def _stringify_soup(soup: BeautifulSoup) -> str:
     """
