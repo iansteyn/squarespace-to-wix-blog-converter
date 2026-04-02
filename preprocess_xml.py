@@ -87,7 +87,6 @@ def main() -> None:
             item.append(excerpt)
 
         # (2) extract links from excerpt BEFORE cleaning
-        print(title.string)
         extracted_links = extract_links(excerpt.string)
 
         # (3) CLEAN tags
