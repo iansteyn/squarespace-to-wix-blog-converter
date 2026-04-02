@@ -77,8 +77,8 @@ def main() -> None:
         for tag_name, cleaner in tag_cleaners.items():
             tag = item.find(tag_name)
 
-            # if tag and tag.string:
-            tag.string = cleaner(tag.string)
+            if tag and tag.string:
+                tag.string = cleaner(tag.string)
 
         # (3) extract links from content
             # (must be done after cleaning to avoid including a bunch of squarespace junk links)
