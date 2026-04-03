@@ -14,26 +14,28 @@ import copy
 """
 Script configuration constants. Edit these as you wish.
 
-- `INPUT_FILE_PATH: str`
-    - Location of the input file, i.e. the XML file you exported from SquareSpace.
-- `OUTPUT_FILE_PATH: str`
-    - Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
-- `MESSAGE_FOR_EXTRACTED_LINKS: str`
-    - A message explaining the extracted links attached at the bottom of each post.
-    - Tailor to your audience.
-- `CATEGORY_NAME_MAP: dict[str, str]`
-    - Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
-- `PRETTIFY: bool`
-    - Only set to `True` when testing (makes the xml output easier to read).
-    - This MUST be set to `False` when generating the final document for Wix. 
-
+INPUT_FILE_PATH:
+    Location of the input file, i.e. the XML file you exported from SquareSpace.
+OUTPUT_FILE_PATH:
+    Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
+MESSAGE_FOR_EXTRACTED_LINKS:
+    A message explaining the extracted links attached at the bottom of each post. Tailor to your audience.
+CATEGORY_NAME_MAP:
+    Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
+NON_POST_URLS:
+    List of urls that will indicate an item is not a blog post. Items with these links will be deleted.
+    (Squarespace exports a website's pages to the same rss feed as blog posts.)
+PRETTIFY:
+    Only set to `True` when testing (makes the xml output easier to read).
+    This MUST be set to `False` when generating the final document for Wix. 
 """
 
 real_input_path = "Squarespace-Wordpress-Export-04-02-2026.xml"
 test_input_path = "short-copy-for-testing.xml"
 
-INPUT_FILE_PATH = "./input_xml/" + real_input_path
+INPUT_FILE_PATH  = "./input_xml/" + real_input_path
 OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
+
 MESSAGE_FOR_EXTRACTED_LINKS = (
     "This article was migrated from our old archive. The following links were preserved from the original publication:"
 )
@@ -41,7 +43,10 @@ CATEGORY_NAME_MAP = {
     'Planetary Health': 'Climate Action',
     'Event': 'Events'
 }
-NON_POST_URLS = ['/events']
+NON_POST_URLS = [
+    '/events'
+]
+
 PRETTIFY = False
 
 # ---------------------------------------------------
