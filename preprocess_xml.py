@@ -62,13 +62,6 @@ def main() -> None:
 
     for item in items:
 
-        # (0) Delete the item if it is just an attachment
-            # (these don't get transferred to Wix, so no need to operate on them)
-        if item.find('wp:attachment_url'):
-            item.decompose()
-            num_posts -= 1
-            continue
-
         # (1) Find Tags
         content = item.find('content:encoded')
         excerpt = item.find('excerpt:encoded')
@@ -76,21 +69,23 @@ def main() -> None:
         link = item.find('link')
         post_name = item.find('wp:post_name')
         categories = item.find_all('category')
+        attachment_url = item.find('wp:attachment_url')
 
-        if not title.string or "(Copy)" in title.string or link.string in NON_POST_URLS:
+        # (2) Delete item if not relevant
+        if (
+            attachment_url                   # It is just an attachment (these don't get transferred to Wix)
+            or not title.string              # no title (it's a junk item)
+            or "(Copy)" in title.string      # post is a copy
+            or link.string in NON_POST_URLS  # item is not a post
+        ):
             item.decompose()
             num_posts -= 1
             continue
 
-        if not excerpt or not excerpt.string:
-            excerpt = xml_soup.new_tag('excerpt:encoded')
-            excerpt.string = ""
-            item.append(excerpt)
-
-        # (2) extract links from excerpt BEFORE cleaning
+        # (3) extract links from excerpt BEFORE cleaning
         extracted_links = extract_links(excerpt.string)
 
-        # (3) CLEAN tags
+        # (4) CLEAN tags
         single_tags_to_clean = [
             (content, get_clean_content),
             (excerpt, get_clean_excerpt),
@@ -107,10 +102,10 @@ def main() -> None:
             if category_tag and category_tag.string:
                 category_tag.string = get_clean_category(category_tag.string, CATEGORY_NAME_MAP)
 
-        # (4) extract links from content AFTER cleaning
+        # (5) extract links from content AFTER cleaning
         extracted_links += extract_links(content.string)
 
-        # (5) append all extracted links to content
+        # (6) append all extracted links to content
         if extracted_links:
             content.string = append_links(content.string, extracted_links)
 
