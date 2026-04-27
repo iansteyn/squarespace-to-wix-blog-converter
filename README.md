@@ -94,6 +94,10 @@ Like links, there are [other features which Wix does not import](https://support
 
 ---
 
+## Why I Made This
+
+I wrote this script while working as a [Website Coordinator](https://youtu.be/kmh0GEx7r-A) at the [Central Okanagan Division of Family Practice](https://www.codfp.ca), and published it as an open-source resource with their permission. I was migrating the Division's newsletter (built with SquareSpace) to their main website (built with Wix), in order to help them consolidate their digital footprint and simplify their administrative tasks. I do not endorse Wix and am not endorsed by them.
+
 ## License
 
 [^1]: If you set up a [venv using VS Code](https://code.visualstudio.com/docs/python/python-tutorial#_create-a-virtual-environment) like I did, it can conveniently activate every time you open this project.
