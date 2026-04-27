@@ -1,34 +1,30 @@
 """
 convert.py
 ----------
-Converts an exported Squarespace blog feed to a format that is ready to be imported into Wix. See README.md for usage details.
-
-General Notes (TODO: remove)
-- I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
-
-----------
+Converts an exported Squarespace blog feed to a format that is ready to be imported into Wix.
+See README.md for usage details.
 
 Edit the global constants below to configure the script settings. 
 
-INPUT_FILE_PATH:
-    (str) Location of the input file, i.e. the XML file you exported from SquareSpace.
+    INPUT_FILE_PATH:
+        (str) Location of the input file, i.e. the XML file you exported from SquareSpace.
 
-OUTPUT_FILE_PATH:
-    (str) Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
+    OUTPUT_FILE_PATH:
+        (str) Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
 
-MESSAGE_FOR_EXTRACTED_LINKS:
-    (str) A message explaining the extracted links attached at the bottom of each post. Tailor to your audience.
+    MESSAGE_FOR_EXTRACTED_LINKS:
+        (str) A message explaining the extracted links attached at the bottom of each post. Tailor to your audience.
 
-CATEGORY_NAME_MAP:
-    (dict) Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
+    CATEGORY_NAME_MAP:
+        (dict) Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
 
-NON_POST_URLS: list
-    (list) List of urls that will indicate an item is not a blog post. Items with these links will be deleted.
-    (Squarespace exports a website's pages to the same rss feed as blog posts.)
+    NON_POST_URLS: list
+        (list) List of urls that will indicate an item is not a blog post. Items with these links will be deleted.
+        (Squarespace exports a website's pages to the same rss feed as blog posts.)
 
-PRETTIFY:
-    (bool) Only set to `True` when testing (makes the xml output easier to read).
-    This MUST be set to `False` when generating the final document for Wix. 
+    PRETTIFY:
+        (bool) Only set to `True` when testing (makes the xml output easier to read).
+        This MUST be set to `False` when generating the final document for Wix. 
 """
 # ---------------------------------------------------
 # CONFIG GLOBALS
