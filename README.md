@@ -94,13 +94,6 @@ Like links, there are [other features which Wix does not import](https://support
 
 ---
 
-## Developer Notes
-
-General Notes
-- I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
-
---- 
-
 ## License
 
 [^1]: If you set up a [venv using VS Code](https://code.visualstudio.com/docs/python/python-tutorial#_create-a-virtual-environment) like I did, it can conveniently activate every time you open this project.
