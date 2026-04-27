@@ -20,7 +20,7 @@ Edit the global constants below to configure the script settings.
     CATEGORY_NAME_MAP:
         (dict) Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
 
-    NON_POST_URLS: list
+    NON_POST_URLS:
         (list) List of urls that will indicate an item is not a blog post. Items with these links will be deleted.
         (Squarespace exports a website's pages to the same rss feed as blog posts.)
 
