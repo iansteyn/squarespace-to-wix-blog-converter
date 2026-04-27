@@ -54,8 +54,7 @@ PRETTIFY = False
 
 # ---------------------------------------------------
 # IMPORTS
-from bs4 import BeautifulSoup, Tag, CData
-import copy
+from bs4 import BeautifulSoup, CData
 
 # ---------------------------------------------------
 # SCRIPT
