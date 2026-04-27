@@ -102,6 +102,7 @@ I wrote this script while working as a [Website Coordinator](https://youtu.be/km
 [Ian Steyn](https://github.com/iansteyn)
 
 ## License
+[MIT License](./LICENSE)
 
 [^1]: If you set up a [venv using VS Code](https://code.visualstudio.com/docs/python/python-tutorial#_create-a-virtual-environment) like I did, it can conveniently activate every time you open this project.
 [^2]: First four steps are from [Importing posts from WordPress to Wix](https://support.wix.com/en/article/wix-blog-importing-blog-posts-from-wordpress-to-the-wix-blog).
