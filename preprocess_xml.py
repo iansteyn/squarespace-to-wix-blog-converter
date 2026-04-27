@@ -33,12 +33,12 @@ PRETTIFY:
 # ---------------------------------------------------
 # CONFIG GLOBALS
 
-real_input_path = "Squarespace-Wordpress-Export-04-02-2026.xml"
-test_input_path = "short-copy-for-testing.xml"
-
-INPUT_FILE_PATH  = "./input_xml/" + real_input_path
-OUTPUT_FILE_PATH = "./output_xml/" + "modified-rss-feed.xml"
-
+INPUT_FILE_PATH = (
+    "./input_xml/Squarespace-Wordpress-Export-04-02-2026.xml"
+)
+OUTPUT_FILE_PATH = (
+    "./output_xml/modified-rss-feed.xml"
+)
 MESSAGE_FOR_EXTRACTED_LINKS = (
     "This article was migrated from our old archive. The following links were preserved from the original publication:"
 )
@@ -49,7 +49,6 @@ CATEGORY_NAME_MAP = {
 NON_POST_URLS = [
     '/events'
 ]
-
 PRETTIFY = False
 
 # ---------------------------------------------------
