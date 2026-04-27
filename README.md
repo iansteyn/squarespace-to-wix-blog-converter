@@ -4,24 +4,70 @@
 
 ---
 
-## How it works
+## Overview: How it works
 
 There is no direct support for Squarespace to Wix blog migration. However, Squarespace sites can be exported to a WordPress XML format, and Wix allows you to import blog posts in the form of Wordpress XML feeds. Uploading the Squarespace export directly to Wix will work, but will result in a variety of content and formatting errors (since both sites expect to be working directly with WordPress).
 
 This project acts as a middle-man and aims to fix some of these errors before the blog feed gets to Wix. It uses [BeautifulSoup](https://beautiful-soup-4.readthedocs.io/en/latest/index.html) to process the XML of the RSS feed, as well as the inner HTML of blog contents. I wrote it for a specific use case, and as such the conversion remains _satisfactory_ rather than perfect (see below). Feel free to modify it to suit your organization/personal needs.
 
-## What it does
+## Details: What it does
+
+See `convert.py` to understand and/or modify specific implementation details of each fix.
+
+### Formatting and Clean-up
+- Cleans up blog content
+  - Preserves paragraph spacing
+  - Preserves divider lines
+  - Preserves headings
+  - Removes squarespace junk (such as text garble of "related posts" section)
+  - Does general HTML clean-up (makes it easier to look at and work with post-conversion)
+- Cleans up blog excerpt
+  - Converts it to plaintext
+- Fixes/removes plaintext HTML escape characters (e.g. `&nbsp;`, `&amp;`) from blog titles, content, excerpts, etc
+- Cleans up blog categories
+  - normalizes whitespace and captilization so that e.g. "best" and "Best" are grouped together.
+  - optionally remaps categories, e.g. if you want to group "planetary health" and "climate change" together, you can map "planetary health" --> "climate change"
+- Removes any non-blog-post pages from the RSS feed
+
+### Link Preservation
+- Tries to preserve as many links as possible
+  - Problem 1: Wix delinks all hyperlinks (i.e. `<a>` tags) on imported posts, with the exception of clickable images.
+  - Problem 2: Squarespace does not export any linked buttons that were included in the blog body
+  - Solution: For each post, extract all non-image links from excerpt and post content, and append them in neat-ish plain text form at the bottom of the post.
+
+>[!NOTE]
+> This solution was sufficient for my organization's migration, as:
+> (a) we did not expect very many users to return to old posts, and
+> (b) most button links tended to also be in the excerpt or post body.
+
+### Limitations and what it doesn't do
+
+#### Images
+- Images that are included in the post body will be preserved (albeit unformatted, unfortunately)
+- However, *cover images* not included in the post body will not be preserved.
+  - We didn't need them; if you do... figure it out I guess.
+
+#### Rich Formatting & Text Decoration
+- Bold and italics are preserved, **but** you may need to ensure that your Wix blog posts don't use a bold or italic typeface by default[^1]
+- Most other rich text or decoration features, such as underlines or colours, are **NOT preserved**
+
+#### Wix Limitations
+
+Like links, there are [other features which Wix does not import](https://support.wix.com/en/article/wix-blog-importing-blog-posts-from-wordpress-to-the-wix-blog), but which you could potentially extract and preserve in some other way if you needed to. These include:
+- comments
+- author names
+- manually inserted code
 
 ---
 
-## How to use it
+## Tutorial: How to use it
 
 ### Export from Squarespace
 - TODO
 
 ### Use the Conversion Script
 1. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) this repo and clone it locally.
-2. _Recommended_: [Create a venv](https://www.w3schools.com/python/python_virtualenv.asp) (**v**irtual **env**ironment), activate it[^1], *then*:
+2. _Recommended_: [Create a venv](https://www.w3schools.com/python/python_virtualenv.asp) (**v**irtual **env**ironment), activate it[^2], *then*:
 3. Run `pip install -r requirements.txt`
 4. Move your Squarespace XML file into this directory.
 5. Configure the script settings by editing the global constants at the top of `convert.py`.
@@ -43,4 +89,5 @@ General Notes
 
 ## License
 
-[^1]: If you set up a [venv using VS Code](https://code.visualstudio.com/docs/python/python-tutorial#_create-a-virtual-environment) like I did, it can conveniently activate every time you open this project
+[^1]: See [Customizing your Blog Post page](https://support.wix.com/en/article/wix-blog-customizing-your-blog-post-page)
+[^2]: If you set up a [venv using VS Code](https://code.visualstudio.com/docs/python/python-tutorial#_create-a-virtual-environment) like I did, it can conveniently activate every time you open this project
