@@ -3,12 +3,18 @@
 **_A Python script for preparing a SquareSpace blog export for import to Wix._**
 
 ---
-## What it does
 
+## How it works
+
+There is no direct support for Squarespace to Wix blog migration. However, Squarespace sites can be exported to a WordPress XML format, and Wix allows you to import blog posts in the form of Wordpress XML feeds. Uploading the Squarespace export directly to Wix will work, but will result in a variety of content and formatting errors (since both sites expect to be working directly with WordPress).
+
+This project acts as a middle-man and aims to fix some of these errors before the blog feed gets to Wix. It uses [BeautifulSoup](https://beautiful-soup-4.readthedocs.io/en/latest/index.html) to process the XML of the RSS feed, as well as the inner HTML of blog contents. I wrote it for a specific use case, and as such the conversion remains _satisfactory_ rather than perfect (see below). Feel free to modify it to suit your organization/personal needs.
+
+## What it does
 
 ---
 
-## How to use
+## How to use it
 
 ### Export from Squarespace
 - TODO
@@ -29,10 +35,12 @@
 
 ---
 
-## How it works
-
-
+## Developer Notes
 General Notes
 - I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
+
+--- 
+
+## License
 
 [^1]: If you set up a [venv using VS Code](https://code.visualstudio.com/docs/python/python-tutorial#_create-a-virtual-environment) like I did, it can conveniently activate every time you open this project
