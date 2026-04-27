@@ -8,7 +8,7 @@
 
 There is no direct support for Squarespace to Wix blog migration. However, Squarespace sites can be exported to a WordPress XML format, and Wix allows you to import blog posts in the form of Wordpress XML feeds. Uploading the Squarespace export directly to Wix will work, but will result in a variety of content and formatting errors (since both sites expect to be working directly with WordPress).
 
-This project acts as a middle-man and aims to fix some of these errors before the blog feed gets to Wix. It uses [BeautifulSoup](https://beautiful-soup-4.readthedocs.io/en/latest/index.html) to process the XML of the RSS feed, as well as the inner HTML of blog contents. I wrote it for a specific use case, and as such the conversion remains _satisfactory_ rather than perfect (see below). Feel free to modify it to suit your organization/personal needs.
+This project acts as a middle-man and aims to fix some of these errors before the blog feed gets to Wix. It uses [BeautifulSoup](https://beautiful-soup-4.readthedocs.io/en/latest/index.html) to process the XML of the RSS feed, as well as the inner HTML of blog contents. I wrote it for a specific use case, and as such the conversion remains _satisfactory_ rather than perfect (see [Details: What it does](#details-what-it-does)). Feel free to modify it to suit your organization/personal needs.
 
 ## Tutorial: How to use it
 
@@ -33,21 +33,20 @@ This project acts as a middle-man and aims to fix some of these errors before th
 6. _Recommended_: Select "**Upload as draft**" so that you can _test_ whether everything works before you publish.
 
 ### Optional: Redirect SquareSpace Links
-If you want people with the link to your old Squarespace posts to be redirected to the same post on Wix, you can [set up URL mappings in Squarespace](https://support.squarespace.com/hc/en-us/articles/205815308-URL-mappings), e.g:
-```
-squarespaceblog/[name] -> https://yourwixsite.com/post/[name] 301
-```
-(here `squarespaceblog` and `yourwixsite.com` should be replaced, of course)
+If you want people with the link to your old Squarespace posts to be redirected to the same post on Wix, you can [set up URL mappings in Squarespace](https://support.squarespace.com/hc/en-us/articles/205815308-URL-mappings).
+
+- e.g. `squarespaceblog/[name] -> https://yourwixsite.com/post/[name] 301`
+- (here `squarespaceblog` and `yourwixsite.com` should be replaced, of course)
 
 >[!NOTE]
-> This may not work perfectly for all posts, as the old Squarespace slug may not match the new Wix slug perfectly. At the very least, such posts will still direct users to your Wix site. In our case, this was mostly good enough, but I also added hardcoded redirects for the most recent 20 or so posts, e.g.:
-> ```
-> squarespaceblog/a-specific-post-slug-nbsp -> https://yourwixsite.com/post/a-specific-post-slug 301
-> ```
+>
+> This may not work perfectly for all posts, as the old Squarespace slug may not match the new Wix slug perfectly. At the very least, such posts will still direct users to your Wix site. In our case, this was mostly good enough, but I also added **hardcoded redirects** for the most recent 20 or so posts, e.g.:
+> 
+> - `squarespaceblog/a-specific-post-slug-with-quirk -> https://yourwixsite.com/post/a-specific-post-slug 301`
+> 
 > I did not have time to develop a better solution, but I suspect the problem is either due to how my script cleans up post names/links, or due to quirks/differences in how Wix and Squarespace generate post slugs .
 
 ## Details: What it does
-
 See `convert.py` to understand and/or modify specific implementation details of each fix.
 
 ### Formatting and Clean-up
@@ -88,7 +87,6 @@ See `convert.py` to understand and/or modify specific implementation details of 
 - Most other rich text or decoration features, such as underlines or colours, are **NOT preserved**
 
 #### Wix Limitations
-
 Like links, there are [other features which Wix does not import](https://support.wix.com/en/article/wix-blog-importing-blog-posts-from-wordpress-to-the-wix-blog), but which you could potentially extract and preserve in some other way if you needed to. These include:
 - comments
 - author names
@@ -97,6 +95,7 @@ Like links, there are [other features which Wix does not import](https://support
 ---
 
 ## Developer Notes
+
 General Notes
 - I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
 
