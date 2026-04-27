@@ -33,7 +33,18 @@ This project acts as a middle-man and aims to fix some of these errors before th
 6. _Recommended_: Select "**Upload as draft**" so that you can _test_ whether everything works before you publish.
 
 ### Optional: Redirect SquareSpace Links
-- TODO
+If you want people with the link to your old Squarespace posts to be redirected to the same post on Wix, you can [set up URL mappings in Squarespace](https://support.squarespace.com/hc/en-us/articles/205815308-URL-mappings), e.g:
+```
+squarespaceblog/[name] -> https://yourwixsite.com/post/[name] 301
+```
+(here `squarespaceblog` and `yourwixsite.com` should be replaced, of course)
+
+>[!NOTE]
+> This may not work perfectly for all posts, as the old Squarespace slug may not match the new Wix slug perfectly. At the very least, such posts will still direct users to your Wix site. In our case, this was mostly good enough, but I also added hardcoded redirects for the most recent 20 or so posts, e.g.:
+> ```
+> squarespaceblog/a-specific-post-slug-nbsp -> https://yourwixsite.com/post/a-specific-post-slug 301
+> ```
+> I did not have time to develop a better solution, but I suspect the problem is either due to how my script cleans up post names/links, or due to quirks/differences in how Wix and Squarespace generate post slugs .
 
 ## Details: What it does
 
