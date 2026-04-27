@@ -1,8 +1,10 @@
 """
 convert.py
-----------
-Converts an exported Squarespace blog feed to a format that is ready to be imported into Wix.
-See README.md for usage details.
+-------------------------------------------------------------------
+Description: Converts an exported Squarespace blog feed to a format that is ready to be imported into Wix. See README.md for usage details.
+Author: Ian Steyn (github.com/iansteyn)
+License: MIT
+-------------------------------------------------------------------
 
 Edit the global constants below to configure the script settings. 
 
