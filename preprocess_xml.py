@@ -1,34 +1,37 @@
 """
-TODO: file description
+convert.py
+----------
+Converts an exported Squarespace blog feed to a format that is ready to be imported into Wix. See README.md for usage details.
 
-General Notes
+General Notes (TODO: remove)
 - I avoid using soup.prettify() because it appears to cause issues with Wix's ability to correctly parse the XML
-"""
-# ---------------------------------------------------
-# IMPORTS
-from bs4 import BeautifulSoup, Tag, CData
-import copy
 
-# ---------------------------------------------------
-# CONFIG GLOBALS
-"""
-Script configuration constants. Edit these as you wish.
+----------
+
+Edit the global constants below to configure the script settings. 
 
 INPUT_FILE_PATH:
-    Location of the input file, i.e. the XML file you exported from SquareSpace.
+    (str) Location of the input file, i.e. the XML file you exported from SquareSpace.
+
 OUTPUT_FILE_PATH:
-    Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
+    (str) Location to write the output file to. Should end in `.xml`. This is the file you will upload to Wix.
+
 MESSAGE_FOR_EXTRACTED_LINKS:
-    A message explaining the extracted links attached at the bottom of each post. Tailor to your audience.
+    (str) A message explaining the extracted links attached at the bottom of each post. Tailor to your audience.
+
 CATEGORY_NAME_MAP:
-    Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
-NON_POST_URLS:
-    List of urls that will indicate an item is not a blog post. Items with these links will be deleted.
+    (dict) Dictionary with categories you want to rename, with entries in the form "old_name":"new_name". Can be empty.
+
+NON_POST_URLS: list
+    (list) List of urls that will indicate an item is not a blog post. Items with these links will be deleted.
     (Squarespace exports a website's pages to the same rss feed as blog posts.)
+
 PRETTIFY:
-    Only set to `True` when testing (makes the xml output easier to read).
+    (bool) Only set to `True` when testing (makes the xml output easier to read).
     This MUST be set to `False` when generating the final document for Wix. 
 """
+# ---------------------------------------------------
+# CONFIG GLOBALS
 
 real_input_path = "Squarespace-Wordpress-Export-04-02-2026.xml"
 test_input_path = "short-copy-for-testing.xml"
@@ -48,6 +51,11 @@ NON_POST_URLS = [
 ]
 
 PRETTIFY = False
+
+# ---------------------------------------------------
+# IMPORTS
+from bs4 import BeautifulSoup, Tag, CData
+import copy
 
 # ---------------------------------------------------
 # SCRIPT
