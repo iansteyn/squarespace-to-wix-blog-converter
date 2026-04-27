@@ -2,6 +2,14 @@
 
 **_A Python script for preparing a SquareSpace blog export for import to Wix._**
 
+## Table of Contents
+  - [Overview: How it works](#overview-how-it-works)
+  - [Tutorial: How to use it](#tutorial-how-to-use-it)
+  - [Details: What it does](#details-what-it-does)
+  - [Why I Made This](#why-i-made-this)
+  - [Author](#author)
+  - [License](#license)
+
 ---
 
 ## Overview: How it works
