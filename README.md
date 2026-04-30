@@ -1,4 +1,4 @@
-# Squarespace to Wix Blog Convertor
+# Squarespace to Wix Blog Converter
 
 **_A Python script for preparing a SquareSpace blog export for import to Wix._**
 
